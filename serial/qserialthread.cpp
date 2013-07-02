@@ -4,11 +4,36 @@
 #include <QSqlQuery>
 #include <QDateTime>
 
+//倍数
+static const double fMulti[4][5] = {
+    1,0,0,0,0,
+    1,1,0,0,0,
+    1,1,1,0,0,
+    1,3,3,2,1
+};
+
+//水深
+static const double fRatioSs[4][5] = {
+    0.6, 0,   0,   0,    0,
+    0.2, 0.8, 0,   0,    0,
+    0.2, 0.6, 0.8, 0,    0,
+    0,   0.2, 0.6, 0.8,  1.0
+};
+
+//一点法和五点法对应的测量点数
+//根据测量方法iclff取值
+static const double fNums[5] = {
+    1,2,3,5
+};
+
 QSerialThread::QSerialThread(QObject *parent) :
     QThread( parent ), serial( parent )
 {
+    iAutoMode = MODE_MANU ;
     iComNo = 6 ;
-    iState = -1 ;
+    iState = STATE_NOTSTART ;       //置测量状态
+    iCxClid = 0;                    //置测点位置
+    iAutoState = AUTO_STATE_STOP ;  //停止状态
 }
 
 void QSerialThread::init(  )
@@ -24,34 +49,145 @@ void QSerialThread::init(  )
 
 void QSerialThread::run( )
 {
-    while( bConnected ){
-//        if( iAutoMode ==  iAutoState ==   )
+    if( !bConnected )  return ;
 
-        switch( iState ){
-        case STATE_HOR:
-        case STATE_VER:
-            queryMove( );
-            break;
-        case STATE_HOR_OVER:
-        case STATE_VER_OVER:
-            msleep(200);
-            break;
-        case STATE_CL:
-            queryCl( );
-            break;
-        case STATE_CL_OVER:
+    while( true ){
+        switch( iAutoMode  ){
+        case MODE_MANU:
+            runManu( );
+            break ;
+        case MODE_HALF:
+        case MODE_AUTO:
+            runFullAuto( );
             break;
         default:
-            msleep(200);
             break;
         }
     }
 }
 
-//解析输入的通讯串
-void QSerialThread::parseInput(  )
+//手动执行的处理
+void QSerialThread::runManu( )
 {
+    switch( iState ){
+    case STATE_HOR:
+    case STATE_VER:
+        queryMove( );
+        break;
+    case STATE_HOR_OVER:
+    case STATE_VER_OVER:
+    case STATE_VER_UP_OVER:
+        msleep(200);
+        break;
+    case STATE_CL:
+        queryCl( );
+        break;
+    case STATE_CL_OVER:
+        break;
+    default:
+        msleep(200);
+        break;
+    }
+}
 
+//全自动处理的执行
+void QSerialThread::runFullAuto( )
+{
+    if( iAutoState == AUTO_STATE_STOP ) {
+        msleep(200);
+        return ;
+    }
+    if( iAutoState == AUTO_STATE_PAUSE ){
+        msleep(200);
+        return ;
+    }
+
+    switch( iState ){
+    case STATE_NOTSTART:
+        moveFish(  );
+        break ;
+    case STATE_HOR:
+    case STATE_VER_UP:
+    case STATE_VER:
+        queryMove( );
+        break;
+    case STATE_HOR_OVER:
+    {
+        QString strSs = QString("%1").arg(currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid]);
+        setConfigSs( strSs );    //置水深
+        sendCmdMove( CMD_DOWN );    //铅鱼下送
+    }
+        break;
+    case STATE_VER_OVER:
+        sendCmdCl( );               //开始测量
+        break;
+    case STATE_VER_UP_OVER:
+        moveFish(  );
+        break;
+    case STATE_CL:
+        queryCl( );
+        break;
+    case STATE_CL_OVER:
+        iCxClid ++ ;    //找下一个测点
+        if( iCxClid >= fNums[currentCx.iClff] ){
+            computerLs( );
+            sendCmdMove( CMD_UP );
+        }
+        else{
+            QString strSs = QString("%1").arg(currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid]);
+            setConfigSs( strSs );    //置水深
+            sendCmdMove( CMD_DOWN );    //铅鱼下送
+        }
+        break;
+    default:
+        msleep(200);
+        break;
+    }
+}
+
+//计算流速
+void QSerialThread::computerLs( )
+{
+    float fLs ;
+    int i;
+    float sum = 0 , sum1 = 0 ;
+    for(i=0; i<fNums[currentCx.iClff]; i++){
+        sum += (fMulti[currentCx.iClff][i] * currentCx.fV[i]);
+        sum1 += fMulti[currentCx.iClff][i] ;
+    }
+    fLs = sum/sum1 ;
+
+    QString strSql ;
+
+    QDateTime dt = QDateTime::currentDateTime() ;
+    QDate d = dt.date() ;
+    QTime t = dt.time() ;
+
+    QString strTime ;
+    strTime.sprintf( "%04d-%02d-%02d %02d:%02d:%02d ", d.year(),d.month(),d.day(),t.hour(),t.minute(),t.second() );
+
+    strSql = QString("insert into result( dt, qdj, ss, ls ) values( '%1', %2, %3, %4 )" )
+            .arg(strTime).arg( currentCx.fQdj ).arg( currentCx.fSs ).arg( fLs );
+
+    QSqlQuery query;
+    query.exec( strSql );
+
+}
+
+void QSerialThread::moveFish(  )
+{
+    iCxClid = 0;
+    if( listCx.isEmpty() ){
+        iAutoState = AUTO_STATE_STOP ;
+        return ;
+    }
+    else{
+        currentCx = listCx.front();
+        listCx.pop_front();
+    }
+
+    setConfigQdj( QString("%1").arg( currentCx.fQdj ) );
+    sendCmdMove( CMD_HEAD );    //最好根据位置判断是出车还是回车，先查询位置
 }
 
 void QSerialThread::writeComm( char c )
@@ -101,11 +237,13 @@ void QSerialThread::queryMove( )
             iState = STATE_HOR_OVER ;
         if( iState == STATE_VER )
             iState = STATE_VER_OVER ;
+        if( iState == STATE_VER_UP )
+            iState = STATE_VER_UP_OVER ;
         bRes = true ;
     }
 
     *( chBufInput + iLenInput - 3 ) = 0 ;
-//    qDebug( ) << (char*)chBufInput  ;
+    qDebug( ) << (char*)chBufInput  ;
 
     int iRes ;
     char s[50];
@@ -185,6 +323,8 @@ void QSerialThread::sendCmdMove( int iCmd )
         iState = STATE_HOR ;
         break;
     case CMD_UP:
+        iState = STATE_VER_UP ;
+        break;
     case CMD_DOWN:
         iState = STATE_VER ;
         break;
@@ -248,7 +388,7 @@ void QSerialThread::queryCl( )
         bRes = true ;
     }
 
-    *( chBufInput + iLenInput - 3 ) = 0 ;
+    *( chBufInput + iLenInput - 3 ) = 0;
 
 //    qDebug( ) << "trim" << (char*)chBufInput  ;
 
@@ -306,21 +446,32 @@ void QSerialThread::queryCl( )
         emit sigClRes( fCl, 5, bRes );
         emit sigSendMsg(tr("测量流速完成!") );
 
-        //存储测量结果
-        QString strSql ;
 
-        QDateTime dt = QDateTime::currentDateTime() ;
-        QDate d = dt.date() ;
-        QTime t = dt.time() ;
+        //存储测量结果  手动测量
+        if( iAutoMode == MODE_MANU ){
+            QString strSql ;
 
-        QString strTime ;
-        strTime.sprintf( "%04d-%02d-%02d %02d:%02d:%02d ", d.year(),d.month(),d.day(),t.hour(),t.minute(),t.second() );
+            QDateTime dt = QDateTime::currentDateTime() ;
+            QDate d = dt.date() ;
+            QTime t = dt.time() ;
 
-        strSql = QString("insert into result( dt, qdj, ss, ls ) values( '%1', %2, %3, %4 )" )
-                .arg(strTime).arg(fQdj).arg(fSs).arg( *( fCl+4 ) );
+            QString strTime ;
+            strTime.sprintf( "%04d-%02d-%02d %02d:%02d:%02d ", d.year(),d.month(),d.day(),t.hour(),t.minute(),t.second() );
 
-        QSqlQuery query;
-        query.exec( strSql );
+            strSql = QString("insert into result( dt, qdj, ss, ls ) values( '%1', %2, %3, %4 )" )
+                    .arg(strTime).arg(fQdj).arg(fSs).arg( *( fCl+4 ) );
+
+            QSqlQuery query;
+            query.exec( strSql );
+        }
+
+        if( iAutoMode == MODE_HALF || iAutoMode == MODE_AUTO ){
+            currentCx.fT[iCxClid] = *( fCl+2 ) ;
+            currentCx.fV[iCxClid] = *( fCl+4 ) ;
+            currentCx.fK = *( fCl+0 ) ;
+            currentCx.fC = *( fCl+1 ) ;
+            currentCx.fN = *( fCl+3 ) ;
+        }
     }
 }
 
@@ -337,6 +488,7 @@ void QSerialThread::stopAuto( )
 {
     listCx.clear();
     iAutoState = AUTO_STATE_STOP ;
+    iState = STATE_NOTSTART ;
 }
 
 
@@ -344,6 +496,12 @@ void QSerialThread::stopAuto( )
 void QSerialThread::pauseAuto( )
 {
     iAutoState = AUTO_STATE_PAUSE ;
+}
+
+//继续自动测速
+void QSerialThread::continueAuto( )
+{
+    iAutoState = AUTO_STATE_START ;
 }
 
 //打印

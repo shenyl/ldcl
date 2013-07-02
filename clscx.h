@@ -24,6 +24,12 @@ public:
 
     float fCxLs ;       //计算出的垂线流速
     float fDotLs[5] ;   //测量点的流速
+
+    float fT[5];    //历时
+    float fV[5];    //速度
+
+    float fK, fC, fN ;
+
 };
 
 #endif // CLSCX_H

@@ -7,14 +7,19 @@
 #include "qcommserial.h"
 #include "../clscx.h"
 
+#define  STATE_NOTSTART     -1
+
 #define  STATE_HOR          0       //水平移动状态
 #define  STATE_HOR_OVER     1       //水平移动状态结束
 
 #define  STATE_VER          2       //垂直移动状态
-#define  STATE_VER_OVER     3       //垂直移动状态结束
+#define  STATE_VER_OVER     3       //向下垂直移动状态结束
 
 #define  STATE_CL           4       //测量状态
 #define  STATE_CL_OVER      5       //测量状态结束
+
+#define  STATE_VER_UP       6       //上升过程
+#define  STATE_VER_UP_OVER  7       //上升过程结束
 
 #define  CMD_HEAD   0   //出车
 #define  CMD_BACK   1   //回车
@@ -31,6 +36,8 @@
 #define  AUTO_STATE_START  1
 #define  AUTO_STATE_PAUSE  2
 #define  AUTO_STATE_STOP   3
+
+
 
 class QSerialThread : public QThread
 {
@@ -53,16 +60,20 @@ public:
     void startAutoMode( int iMode );
     void stopAuto( );
     void pauseAuto( );
+    void continueAuto( );
 
+    void clearCx( ){ listCx.clear( ); }
     void appendCx( clsCx  cx ){ listCx.append( cx ); }
     void printfCx();
 
-protected:
-    void parseInput(  );
+    void runManu( );
+    void runFullAuto( );
+    void computerLs( );
+    void moveFish(  );
 
+protected:
     void writeComm( char c );
     void readComm( );
-
 
 private:
     QCommSerial serial ;
@@ -77,15 +88,18 @@ private:
 
     float fQdj, fSs ;   //起点距， 水深
     float fPos[7]  ;    //从通讯协议中取来的位置  4 当前起点距 5 当前水深 6 预置起点距 7 预置水深
-    float fCl[5]  ;     //流速测量结果  K C D N V
+    float fCl[5]  ;     //流速测量结果  K C T N V
     int iState ;        //状态
 
     QList <clsCx>  listCx ;
-    int iAutoMode ;
-    int iAutoState ;
+    int iAutoMode ;     //自动运行模式
+    int iAutoState ;    //自动运行状态
+
+    int iCxClid ;       //垂线测量编号
+    clsCx  currentCx ;  //当前垂线
+//    int iCxClState ;    //垂线测量状态
 
 signals:
-
     void sigFishPos( float * fPos, int iNums, bool bRes );  // bRes 表示是在测量中还是测量结果
     void sigClRes( float * fCl, int iNums, bool bRes );       // false测量过程中   true测量有结果
     void sigSendMsg( QString );

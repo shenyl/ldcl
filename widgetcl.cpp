@@ -56,13 +56,19 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     connect( &threadserial, SIGNAL( sigSendMsg( QString ) ), \
              this, SLOT( slotGetMsg( QString ) ));
 
+    radioManual  = new QRadioButton( tr("手动测量") );
+    radioManual->setChecked( true );
+
     radioFullAuto = new QRadioButton( tr("全自动测量") );
     radioHalfAuto = new QRadioButton( tr("半自动测量") );
-    lblAutoState = new QLabel(tr("测量停止"))  ;
+    lblAutoState = new QLabel(tr("自动测量停止")) ;
     buttonClStart = new QPushButton( tr("开始") );
     buttonClPause = new QPushButton( tr("暂停") );
-    buttonClStop = new QPushButton( tr("停止") );
+    buttonClStop = new QPushButton( tr("停止") );  
     buttonClUnFinish = new QPushButton( tr("查看未完成") );
+
+    buttonClStop->setEnabled(false);
+    buttonClPause->setEnabled(false);
 
     connect( buttonClStart, SIGNAL(clicked()), this, SLOT( slotClStart(  )));
     connect( buttonClStop, SIGNAL(clicked()), this, SLOT( slotClStop(  )));
@@ -70,13 +76,14 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     connect( buttonClUnFinish, SIGNAL(clicked()), this, SLOT( slotClUnfinish(  )));
 
     QGridLayout * LayoutAuto = new QGridLayout ;
-    LayoutAuto->addWidget(radioFullAuto, 0, 0 );
-    LayoutAuto->addWidget(radioHalfAuto, 1, 0);
-    LayoutAuto->addWidget(lblAutoState, 2, 0,1,2);
-    LayoutAuto->addWidget(buttonClStart, 3, 0);
-    LayoutAuto->addWidget(buttonClPause, 3, 1);
-    LayoutAuto->addWidget(buttonClStop, 4, 0);
-    LayoutAuto->addWidget(buttonClUnFinish, 4, 1);
+    LayoutAuto->addWidget(radioManual, 0, 0 );
+    LayoutAuto->addWidget(radioFullAuto, 1, 0 );
+    LayoutAuto->addWidget(radioHalfAuto, 1, 1);
+    LayoutAuto->addWidget(lblAutoState, 3, 0,1,2);
+    LayoutAuto->addWidget(buttonClStart, 4, 0);
+    LayoutAuto->addWidget(buttonClPause, 4, 1);
+    LayoutAuto->addWidget(buttonClStop, 5, 0);
+//    LayoutAuto->addWidget(buttonClUnFinish, 4, 1);
 
     QGroupBox *groupBox = new QGroupBox(tr("自动测量"));
     groupBox->setLayout( LayoutAuto );
@@ -238,7 +245,7 @@ void QWidgetCl::slotFishPos( float *fPos , int iNums, bool bRes  )
     QString str = QString( tr( "起点距%1 水深%2 预置起点距%3 预置水深%4" ) )
             .arg(*(fPos+3)).arg(*(fPos+4)).arg(*(fPos+5)).arg(*(fPos+6));
 
-    pPlainTextEdit->appendPlainText( str );
+    slotGetMsg(str);
 
 }
 
@@ -250,7 +257,8 @@ void QWidgetCl::slotClRes( float *fCl, int iNums, bool bRes )
     QString str = QString( tr( "T %1 N%2 V%3" ) )
             .arg(*(fCl+2)).arg(*(fCl+3)).arg(*(fCl+4));
 
-    pPlainTextEdit->appendPlainText( str );
+    slotGetMsg(str);
+
 }
 
 //获取参数设置指定项的值
@@ -271,7 +279,13 @@ QString QWidgetCl::getSysconfig( int iId )
 //
 void QWidgetCl::slotGetMsg( QString strMsg )
 {
-    pPlainTextEdit->appendPlainText( strMsg );
+    QDateTime dt = QDateTime::currentDateTime() ;
+    QTime t = dt.time() ;
+
+    QString strTime ;
+    strTime.sprintf( "%02d:%02d:%02d   ", t.hour(),t.minute(),t.second() );
+
+    pPlainTextEdit->appendPlainText( strTime + strMsg );
 }
 
 //查看测量结果
@@ -287,6 +301,8 @@ void QWidgetCl::slotClStart(  )
     clsCx  cx ;
     QSqlTableModel *  tableModel ;
     tableModel =  pWidCx->getTableModel( );
+
+    threadserial.clearCx( );
 
     QSqlRecord record;
 
@@ -312,22 +328,41 @@ void QWidgetCl::slotClStart(  )
 //    threadserial.printfCx( );
 
     int iAutoMode ;
+    if( radioManual->isChecked() ) iAutoMode = MODE_MANU ;
     if( radioFullAuto->isChecked() ) iAutoMode = MODE_AUTO ;
     if( radioHalfAuto->isChecked() ) iAutoMode = MODE_HALF ;
     threadserial.startAutoMode( iAutoMode );
-    lblAutoState->setText(tr("自动测量开始"));
+    if( iAutoMode != MODE_MANU )
+        lblAutoState->setText(tr("自动测量开始"));
+    else
+        lblAutoState->setText(tr("手手动测量 测量开始"));
+    buttonClStart->setEnabled(false);
+    buttonClStop->setEnabled(true);
+    buttonClPause->setEnabled(true);
 }
 
 void QWidgetCl::slotClStop(  )
 {
     threadserial.stopAuto();
     lblAutoState->setText(tr("自动测量停止"));
+
+    buttonClStart->setEnabled( true );
+    buttonClStop->setEnabled( false );
+    buttonClPause->setEnabled(false);
 }
 
 void QWidgetCl::slotClPause(  )
 {
-    threadserial.pauseAuto();
-    lblAutoState->setText(tr("自动测量暂停"));
+    if( buttonClPause->text() == tr("暂停") ){
+        buttonClPause->setText( tr("继续") );
+        threadserial.pauseAuto();
+        lblAutoState->setText(tr("自动测量暂停"));
+    }
+    else{
+        buttonClPause->setText( tr("暂停") );
+        threadserial.continueAuto();
+        lblAutoState->setText(tr("自动测量继续"));
+    }
 }
 
 //查看未完成的任务

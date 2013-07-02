@@ -32,6 +32,7 @@ public:
     QPushButton * buttonGetQdj ;
     QPushButton * buttonClResult;
 
+    QRadioButton * radioManual ;
     QRadioButton * radioFullAuto;
     QRadioButton * radioHalfAuto;
     QLabel * lblAutoState ;
