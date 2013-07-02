@@ -24,6 +24,7 @@
 
 #define  CMD_CL     5   //测量
 
+#define  MODE_MANU  0   //手动
 #define  MODE_HALF  1   //半自动
 #define  MODE_AUTO  2   //全自动
 

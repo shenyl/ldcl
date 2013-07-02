@@ -25,6 +25,8 @@ void QSerialThread::init(  )
 void QSerialThread::run( )
 {
     while( bConnected ){
+//        if( iAutoMode ==  iAutoState ==   )
+
         switch( iState ){
         case STATE_HOR:
         case STATE_VER:
@@ -329,12 +331,14 @@ void QSerialThread::startAutoMode( int iMode )
     iAutoState = AUTO_STATE_START ;
 }
 
+
 //停止自动测速模式
 void QSerialThread::stopAuto( )
 {
     listCx.clear();
     iAutoState = AUTO_STATE_STOP ;
 }
+
 
 //暂停自动测速模式
 void QSerialThread::pauseAuto( )

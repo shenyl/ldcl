@@ -330,6 +330,7 @@ void QWidgetCl::slotClPause(  )
     lblAutoState->setText(tr("自动测量暂停"));
 }
 
+//查看未完成的任务
 void QWidgetCl::slotClUnfinish(  )
 {
 
