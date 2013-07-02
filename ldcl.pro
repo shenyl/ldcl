@@ -41,7 +41,7 @@ HEADERS += \
         itemdm.h \
         graphicviewdm.h \
         dlgresult.h \
-    clscx.h
+        clscx.h
 
 #         QWidgetManage.h \
 #         sysconfig.h \
