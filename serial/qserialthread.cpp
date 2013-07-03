@@ -34,6 +34,7 @@ QSerialThread::QSerialThread(QObject *parent) :
     iState = STATE_NOTSTART ;       //ÖÃ²âÁ¿×´Ì¬
     iCxClid = 0;                    //ÖÃ²âµãÎ»ÖÃ
     iAutoState = AUTO_STATE_STOP ;  //Í£Ö¹×´Ì¬
+    bHalfContinue = true ;          //°ë×Ô¶¯²âËÙ×´Ì¬Ê±ÊÇ·ñ¼ÌÐø
 }
 
 void QSerialThread::init(  )
@@ -466,11 +467,11 @@ void QSerialThread::queryCl( )
         }
 
         if( iAutoMode == MODE_HALF || iAutoMode == MODE_AUTO ){
-            currentCx.fT[iCxClid] = *( fCl+2 ) ;
-            currentCx.fV[iCxClid] = *( fCl+4 ) ;
             currentCx.fK = *( fCl+0 ) ;
             currentCx.fC = *( fCl+1 ) ;
-            currentCx.fN = *( fCl+3 ) ;
+            currentCx.fT[iCxClid] = *( fCl+2 ) ;
+            currentCx.fV[iCxClid] = *( fCl+4 ) ;
+            currentCx.fN[iCxClid] = *( fCl+3 ) ;
         }
     }
 }
