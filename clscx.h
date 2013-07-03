@@ -30,6 +30,8 @@ public:
     float fV[5];    //速度
     float fN[5];    //总转数
 
+    float fCdSs[5];    //测点水深
+
     float fK, fC ;  //测量时的常数
 
 };

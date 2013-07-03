@@ -11,6 +11,7 @@
 #include <QSqlRecord>
 #include <QSqlField>
 #include <QDebug>
+#include <QFileDialog>
 
 QWidgetCl::QWidgetCl(QWidget *parent) :
     QWidget(parent)
@@ -55,6 +56,10 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
              this, SLOT( slotClRes( float *, int, bool  ) ));
     connect( &threadserial, SIGNAL( sigSendMsg( QString ) ), \
              this, SLOT( slotGetMsg( QString ) ));
+    connect( &threadserial, SIGNAL( sigHalf(  ) ), \
+             this, SLOT( slotGetHalfContinue( ) ) );
+    connect( &threadserial, SIGNAL( sigAuto() ), \
+             this, SLOT( slotGetAuto( ) ) );
 
     radioManual  = new QRadioButton( tr("手动测量") );
     radioManual->setChecked( true );
@@ -74,6 +79,16 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     connect( buttonClStop, SIGNAL(clicked()), this, SLOT( slotClStop(  )));
     connect( buttonClPause, SIGNAL(clicked()), this, SLOT( slotClPause(  )));
     connect( buttonClUnFinish, SIGNAL(clicked()), this, SLOT( slotClUnfinish(  )));
+
+    buttonHalfContinue = new QPushButton( tr("半自动继续") );
+    buttonClearLog = new QPushButton( tr("清除日志") );
+    buttonSaveLog = new QPushButton( tr("保存日志") );
+
+    buttonHalfContinue->setEnabled( false );
+
+    connect( buttonHalfContinue, SIGNAL(clicked()), this, SLOT( slotHalfContinue(  )));
+    connect( buttonClearLog, SIGNAL(clicked()), this, SLOT( slotClearLog( )));
+    connect( buttonSaveLog, SIGNAL(clicked()), this, SLOT( slotSaveLog( )));
 
     QGridLayout * LayoutAuto = new QGridLayout ;
     LayoutAuto->addWidget(radioManual, 0, 0 );
@@ -137,6 +152,12 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     Layout3->addLayout( LayoutCtl );
     Layout3->addWidget( groupBox );
 
+    QHBoxLayout * Layout4 = new QHBoxLayout ;
+    Layout4->addWidget( lblMsg );
+    Layout4->addStretch();
+    Layout4->addWidget( buttonHalfContinue );
+    Layout4->addWidget( buttonClearLog );
+    Layout4->addWidget( buttonSaveLog );
 
     QVBoxLayout * LayoutRight = new QVBoxLayout;
 //    LayoutRight->addStretch( );
@@ -145,7 +166,7 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
 //    LayoutRight->addLayout( LayoutGetQdj );
     LayoutRight->addLayout( Layout1 );
     LayoutRight->addLayout( Layout2 );
-    LayoutRight->addWidget( lblMsg );
+    LayoutRight->addLayout( Layout4 );
     LayoutRight->addWidget( pPlainTextEdit );
 
     QHBoxLayout * mainLayout = new QHBoxLayout(this) ;
@@ -369,4 +390,49 @@ void QWidgetCl::slotClPause(  )
 void QWidgetCl::slotClUnfinish(  )
 {
 
+}
+
+//半自动化继续
+void QWidgetCl::slotHalfContinue(  )
+{
+    threadserial.setHalfContinue();
+    buttonHalfContinue->setEnabled( false );
+}
+
+//清日志
+void QWidgetCl::slotClearLog(  )
+{
+    pPlainTextEdit->clear();
+}
+
+//保存日志
+void QWidgetCl::slotSaveLog(  )
+{
+    QString fileName = QFileDialog::getSaveFileName( 0, tr("保存日志文件"),
+                               QCoreApplication::applicationDirPath(  ),
+                               tr("日志结果 (*.txt)"));
+
+//    qDebug( ) << fileName ;
+
+    QFile file( fileName );
+    if ( !file.open(QIODevice::WriteOnly | QIODevice::Text) )
+        return ;
+
+    QTextStream in(&file);
+    in << pPlainTextEdit->toPlainText( );
+
+}
+
+//获取半自动的中途信号
+void QWidgetCl::slotGetHalfContinue( )
+{
+    buttonHalfContinue->setEnabled( true );
+    pPlainTextEdit->appendHtml( tr("<font color=\"#ff0000\">点击按钮继续半自动化的测速工作</font>") );
+}
+
+//自动测量结束槽
+void QWidgetCl::slotGetAuto( )
+{
+    buttonClStart->setEnabled( true );
+    pPlainTextEdit->appendHtml( tr("<font color=\"#ff0000\">自动测量结束</font>") );
 }

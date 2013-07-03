@@ -103,17 +103,24 @@ void QSerialThread::runFullAuto( )
         return ;
     }
 
+    if( iAutoMode == MODE_HALF && !bHalfContinue ){ //半自动模式下继续标志
+        msleep(200);
+        return ;
+    }
+
     switch( iState ){
     case STATE_NOTSTART:
         moveFish(  );
         break ;
-    case STATE_HOR:
+
     case STATE_VER_UP:
+    case STATE_HOR:
     case STATE_VER:
         queryMove( );
         break;
     case STATE_HOR_OVER:
     {
+        currentCx.fCdSs[iCxClid] = currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid];
         QString strSs = QString("%1").arg(currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid]);
         setConfigSs( strSs );    //置水深
         sendCmdMove( CMD_DOWN );    //铅鱼下送
@@ -133,6 +140,10 @@ void QSerialThread::runFullAuto( )
         if( iCxClid >= fNums[currentCx.iClff] ){
             computerLs( );
             sendCmdMove( CMD_UP );
+            if( iAutoMode == MODE_HALF ){   //半自动发消息，置停止标志
+                emit sigHalf( );
+                bHalfContinue = false ;
+            }
         }
         else{
             QString strSs = QString("%1").arg(currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid]);
@@ -158,6 +169,22 @@ void QSerialThread::computerLs( )
     }
     fLs = sum/sum1 ;
 
+    QString strV, strT, strN, strK, strC, strCdSs ;
+
+    for(i=0; i<fNums[currentCx.iClff]; i++){
+        strV += QString("%1/").arg(currentCx.fV[i]);
+    }
+    for(i=0; i<fNums[currentCx.iClff]; i++){
+        strT += QString("%1/").arg(currentCx.fT[i]);
+    }
+    for(i=0; i<fNums[currentCx.iClff]; i++){
+        strN += QString("%1/").arg(currentCx.fN[i]);
+    }
+    for(i=0; i<fNums[currentCx.iClff]; i++){
+        strCdSs += QString("%1/").arg(currentCx.fCdSs[i]);
+    }
+
+
     QString strSql ;
 
     QDateTime dt = QDateTime::currentDateTime() ;
@@ -167,8 +194,10 @@ void QSerialThread::computerLs( )
     QString strTime ;
     strTime.sprintf( "%04d-%02d-%02d %02d:%02d:%02d ", d.year(),d.month(),d.day(),t.hour(),t.minute(),t.second() );
 
-    strSql = QString("insert into result( dt, qdj, ss, ls ) values( '%1', %2, %3, %4 )" )
-            .arg(strTime).arg( currentCx.fQdj ).arg( currentCx.fSs ).arg( fLs );
+    strSql = QString("insert into result( dt, qdj, ss, ls, fV, fT, fN, fK, fC, fCdSs ) values( '%1', %2, %3, %4, '%5', '%6', '%7', '%8', '%9', '%10' )" )
+            .arg(strTime).arg( currentCx.fQdj ).arg( currentCx.fSs ).arg( fLs )
+            .arg(strV).arg(strT).arg(strN).arg(strK).arg(strC)
+            .arg(strCdSs);
 
     QSqlQuery query;
     query.exec( strSql );
@@ -180,15 +209,22 @@ void QSerialThread::moveFish(  )
     iCxClid = 0;
     if( listCx.isEmpty() ){
         iAutoState = AUTO_STATE_STOP ;
+        iState = STATE_NOTSTART ;
+        emit sigAuto( );
         return ;
     }
     else{
         currentCx = listCx.front();
         listCx.pop_front();
     }
-
     setConfigQdj( QString("%1").arg( currentCx.fQdj ) );
-    sendCmdMove( CMD_HEAD );    //最好根据位置判断是出车还是回车，先查询位置
+
+    //根据当前位置判断是出车还是回车，先查询位置
+    queryMove( );   //查询铅鱼位置
+    if( *(fPos + 4) < currentCx.fQdj )
+        sendCmdMove( CMD_HEAD );
+    else
+        sendCmdMove( CMD_BACK );
 }
 
 void QSerialThread::writeComm( char c )

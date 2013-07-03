@@ -61,6 +61,7 @@ public:
     void stopAuto( );
     void pauseAuto( );
     void continueAuto( );
+    void setHalfContinue( ){ bHalfContinue = true ;}
 
     void clearCx( ){ listCx.clear( ); }
     void appendCx( clsCx  cx ){ listCx.append( cx ); }
@@ -79,6 +80,7 @@ private:
     QCommSerial serial ;
     bool bConnected ;
     int iComNo ;
+    bool bHalfContinue ;
 
     unsigned char chBufInput[1024];
     unsigned char chBufOutput[1024];
@@ -103,6 +105,8 @@ signals:
     void sigFishPos( float * fPos, int iNums, bool bRes );  // bRes 表示是在测量中还是测量结果
     void sigClRes( float * fCl, int iNums, bool bRes );       // false测量过程中   true测量有结果
     void sigSendMsg( QString );
+    void sigHalf( );    //半自动阶段完成的信号
+    void sigAuto( ) ;   //自动测量完成！
 
 };
 

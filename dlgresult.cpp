@@ -1,5 +1,6 @@
 #include   "dlgresult.h"
 #include   "combodelegate.h"
+#include   "func.h"
 
 #include <QHBoxLayout>
 #include <QSqlQuery>
@@ -30,11 +31,13 @@ QDlgResult::QDlgResult( QString strTabName, QWidget* parent, Qt::WindowFlags fla
     buttonDelete = new QPushButton(tr("删除&D"));
     buttonUpdate = new QPushButton(tr("保存&S"));
     buttonClose = new QPushButton(tr("关闭&C"));
+    buttonSaveXls = new QPushButton(tr("另存XLS&C"));
 
     connect(buttonInsert, SIGNAL(clicked()), this, SLOT(insertRow()));
     connect(buttonDelete, SIGNAL(clicked()), this, SLOT(deleteRow()));
     connect(buttonUpdate, SIGNAL(clicked()), this, SLOT(updateRow()));
     connect(buttonClose, SIGNAL(clicked()), this, SLOT(close()));
+    connect(buttonSaveXls, SIGNAL(clicked()), this, SLOT( slotSaveXls( )));
 
     lblStart = new QLabel(tr("开始时间：")) ;
     lblEnd = new QLabel(tr("结束时间：")) ;
@@ -202,3 +205,9 @@ void QDlgResult::slotQuery( )
 
 }
 
+//存成xls文件
+void QDlgResult::slotSaveXls( )
+{
+    QFunc func ;
+    func.saveXLS( tabView, modelQuery );
+}

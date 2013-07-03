@@ -41,6 +41,10 @@ public:
     QPushButton * buttonClStop  ;
     QPushButton * buttonClUnFinish ;
 
+    QPushButton * buttonHalfContinue ;
+    QPushButton * buttonClearLog ;
+    QPushButton * buttonSaveLog ;
+
     QLabel * label1, *label2;
     QLabel * lblGetQdj;
     QLineEdit * pEdtQdj, * pEdtSs ;
@@ -73,6 +77,12 @@ private slots:
     void slotClRes( float *, int iNums, bool bRes  );
     void slotGetMsg( QString strMsg );
     void slotClResult(  );
+
+    void slotHalfContinue(  );
+    void slotClearLog(  );
+    void slotSaveLog(  );
+    void slotGetHalfContinue( );
+    void slotGetAuto( );
 
 private:
     void setButton( QPushButton * pButton, QString strStyle );

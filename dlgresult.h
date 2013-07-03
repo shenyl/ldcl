@@ -28,6 +28,7 @@ private slots:
     void deleteRow( );
     void updateRow( );
     void slotQuery( );
+    void slotSaveXls( );
 
 private:
     void retrieveTableView();
@@ -43,6 +44,7 @@ private:
     QPushButton *buttonDelete ;
     QPushButton *buttonUpdate ;
     QPushButton *buttonClose ;
+    QPushButton *buttonSaveXls ;
 
     QString strTabName ;
 

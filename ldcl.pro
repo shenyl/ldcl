@@ -22,7 +22,8 @@ SOURCES += \
         itemdm.cpp \
         graphicviewdm.cpp \
         dlgresult.cpp \
-    clscx.cpp
+        clscx.cpp \
+        func.cpp
 
 #        QWidgetManage.cpp \
 #        sysconfig.cpp \
@@ -41,7 +42,8 @@ HEADERS += \
         itemdm.h \
         graphicviewdm.h \
         dlgresult.h \
-        clscx.h
+        clscx.h \
+        func.h
 
 #         QWidgetManage.h \
 #         sysconfig.h \
@@ -52,6 +54,9 @@ RESOURCES  =  ldcl.qrc
 
 QT += core gui
 QT += sql
+
+LIBS += -lqaxserver \
+        -lqaxcontainer
 
 # define for clear error  C4996
 DEFINES += _CRT_SECURE_NO_DEPRECATE
