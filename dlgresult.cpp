@@ -202,7 +202,6 @@ void QDlgResult::slotQuery( )
         i++ ;
 //        qDebug() << iWidth ;
     }
-
 }
 
 //´æ³ÉxlsÎÄ¼þ
