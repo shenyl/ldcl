@@ -2,6 +2,7 @@
 
 #include  <QDebug>
 
+
 clsCx::clsCx( )
 {
 
