@@ -7,6 +7,7 @@
 //三点法	Vm = ( V0.2 + V0.6 + V0.8) / 3
 //五点法	Vm = (V0.0 + 3V0.2 + 3V0.6 + 2V0.8 + V1.0) / 10
 
+
 class clsCx
 {
 public:
@@ -27,8 +28,9 @@ public:
 
     float fT[5];    //历时
     float fV[5];    //速度
+    float fN[5];    //总转数
 
-    float fK, fC, fN ;
+    float fK, fC ;  //测量时的常数
 
 };
 

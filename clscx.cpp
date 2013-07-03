@@ -1,7 +1,5 @@
 #include  "clscx.h"
-
 #include  <QDebug>
-
 
 clsCx::clsCx( )
 {
