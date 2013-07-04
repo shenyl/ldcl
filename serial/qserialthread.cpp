@@ -98,16 +98,20 @@ void QSerialThread::runFullAuto( )
         msleep(200);
         return ;
     }
-    if( iAutoState == AUTO_STATE_PAUSE ){
+    bool b1 ;
+    b1 = (iState ==  STATE_VER_OVER || iState ==STATE_HOR_OVER || STATE_VER_UP_OVER );
+
+    if( b1 && iAutoState == AUTO_STATE_PAUSE ){
         msleep(200);
         return ;
     }
 
+    qDebug( ) << 0  << bHalfContinue ;
     if( iAutoMode == MODE_HALF && !bHalfContinue ){ //半自动模式下继续标志
         msleep(200);
         return ;
     }
-
+    qDebug( ) << 1 ;
     switch( iState ){
     case STATE_NOTSTART:
         moveFish(  );
@@ -121,6 +125,8 @@ void QSerialThread::runFullAuto( )
     case STATE_HOR_OVER:
     {
         currentCx.fCdSs[iCxClid] = currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid];
+//        qDebug() << tr("水深") << currentCx.fCdSs[iCxClid] ;
+
         QString strSs = QString("%1").arg(currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid]);
         setConfigSs( strSs );    //置水深
         sendCmdMove( CMD_DOWN );    //铅鱼下送
@@ -140,12 +146,13 @@ void QSerialThread::runFullAuto( )
         if( iCxClid >= fNums[currentCx.iClff] ){
             computerLs( );
             sendCmdMove( CMD_UP );
-            if( iAutoMode == MODE_HALF ){   //半自动发消息，置停止标志
+            if( iAutoMode == MODE_HALF && listCx.size()>0 ){   //半自动发消息，置停止标志
                 emit sigHalf( );
                 bHalfContinue = false ;
             }
         }
         else{
+            currentCx.fCdSs[iCxClid] = currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid];
             QString strSs = QString("%1").arg(currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid]);
             setConfigSs( strSs );    //置水深
             sendCmdMove( CMD_DOWN );    //铅鱼下送
@@ -170,6 +177,9 @@ void QSerialThread::computerLs( )
     fLs = sum/sum1 ;
 
     QString strV, strT, strN, strK, strC, strCdSs ;
+
+    strK = QString("%1").arg( currentCx.fK );
+    strC = QString("%1").arg( currentCx.fC );
 
     for(i=0; i<fNums[currentCx.iClff]; i++){
         strV += QString("%1/").arg(currentCx.fV[i]);
@@ -221,7 +231,8 @@ void QSerialThread::moveFish(  )
 
     //根据当前位置判断是出车还是回车，先查询位置
     queryMove( );   //查询铅鱼位置
-    if( *(fPos + 4) < currentCx.fQdj )
+    qDebug( ) << "aaaaa" << *(fPos + 4) << currentCx.fQdj  ;
+    if( *(fPos + 3) < currentCx.fQdj )
         sendCmdMove( CMD_HEAD );
     else
         sendCmdMove( CMD_BACK );
@@ -281,9 +292,11 @@ void QSerialThread::queryMove( )
 
     *( chBufInput + iLenInput - 3 ) = 0 ;
     qDebug( ) << (char*)chBufInput  ;
+//    qDebug( ) << *chBufInput << *(chBufInput+1)<< *(chBufInput+2) ;
 
     int iRes ;
     char s[50];
+
     iRes = sscanf( (char*)chBufInput, "%c%f %f %f %f %f %f %f",  s, fPos, \
                    fPos + 1, fPos + 2, fPos + 3, fPos + 4, fPos + 5, \
                    fPos + 6 );
@@ -415,7 +428,7 @@ void QSerialThread::queryCl( )
     bResult1 = ( memcmp( chBufInput + iLenInput - 3, yw , 2 ) == 0 );
     bResult2 = ( memcmp( chBufInput + iLenInput - 3, zw , 2 ) == 0 );
     qDebug( ) << (char*)chBufInput  ;
-    qDebug( ) << "result" << bResult1 << bResult2 ;
+//    qDebug( ) << "result" << bResult1 << bResult2 ;
 
     bool bRes = false ;
     if( bResult1 ) { msleep(500);  bRes = false ;}
@@ -436,23 +449,24 @@ void QSerialThread::queryCl( )
            chMark, f+1, chMark, fCl+2, chMark, fCl+3, \
                   chMark, fCl+4 );
 
-    qDebug() << "float " << f[0] << "|" << f[1] ;
+//    qDebug() << "float " << f[0] << "|" << f[1] ;
 
     qDebug() << "result" << iRes ;
-
     if( iRes == 10 ){   //第一次和测量结果的采数结果
         fCl[0] = f[0];
         fCl[1] = f[1];
+//        qDebug( ) << "result  1_" << f[0] << f[1] ;
     }
 
     if( iRes == 4 ){    //第2到N次的采数结果
         fCl[2] = f[0];
         fCl[3] = f[1];
+        qDebug( ) << "result 2_" << f[0]  << f[1] ;
     }
 
-    for(int i=0; i<5; i++ ){
-        qDebug( ) << i<< *(fCl+i) ;
-    }
+//    for(int i=0; i<5; i++ ){
+//        qDebug( ) << i<< *(fCl+i) ;
+//    }
 
     if( bResult1 ){
         *( fCl + 4 ) = 0;
@@ -517,6 +531,7 @@ void QSerialThread::startAutoMode( int iMode )
 {
     iAutoMode = iMode ;
     iAutoState = AUTO_STATE_START ;
+    bHalfContinue = true ;
 }
 
 

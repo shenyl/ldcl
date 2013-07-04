@@ -4,7 +4,6 @@
 #include <QMainWindow>
 #include <QSqlDatabase>
 #include <QSystemTrayIcon>
-//aaaaaa
 
 class QMenu ;
 class QAction ;

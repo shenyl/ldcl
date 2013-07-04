@@ -96,8 +96,8 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     LayoutAuto->addWidget(radioHalfAuto, 1, 1);
     LayoutAuto->addWidget(lblAutoState, 3, 0,1,2);
     LayoutAuto->addWidget(buttonClStart, 4, 0);
-    LayoutAuto->addWidget(buttonClPause, 4, 1);
-    LayoutAuto->addWidget(buttonClStop, 5, 0);
+//    LayoutAuto->addWidget(buttonClPause, 4, 1);
+    LayoutAuto->addWidget(buttonClStop, 4, 1);
 //    LayoutAuto->addWidget(buttonClUnFinish, 4, 1);
 
     QGroupBox *groupBox = new QGroupBox(tr("自动测量"));
@@ -215,6 +215,7 @@ void QWidgetCl::slotCmdBack( )
 void QWidgetCl::slotCmdStop( )
 {
     threadserial.sendCmdMove( CMD_STOP );
+    threadserial.setStateNotStart( );
 }
 
 //开始测量
@@ -319,6 +320,18 @@ void QWidgetCl::slotClResult(  )
 //启动自动测量
 void QWidgetCl::slotClStart(  )
 {
+    int iAutoMode ;
+    if( radioManual->isChecked() ) iAutoMode = MODE_MANU ;
+    if( radioFullAuto->isChecked() ) iAutoMode = MODE_AUTO ;
+    if( radioHalfAuto->isChecked() ) iAutoMode = MODE_HALF ;
+
+    if( iAutoMode != MODE_MANU )
+        lblAutoState->setText(tr("自动测量开始"));
+    else{
+        lblAutoState->setText(tr("手动测量 测量开始"));
+        return ;
+    }
+
     clsCx  cx ;
     QSqlTableModel *  tableModel ;
     tableModel =  pWidCx->getTableModel( );
@@ -347,16 +360,8 @@ void QWidgetCl::slotClStart(  )
         }
     }
 //    threadserial.printfCx( );
-
-    int iAutoMode ;
-    if( radioManual->isChecked() ) iAutoMode = MODE_MANU ;
-    if( radioFullAuto->isChecked() ) iAutoMode = MODE_AUTO ;
-    if( radioHalfAuto->isChecked() ) iAutoMode = MODE_HALF ;
     threadserial.startAutoMode( iAutoMode );
-    if( iAutoMode != MODE_MANU )
-        lblAutoState->setText(tr("自动测量开始"));
-    else
-        lblAutoState->setText(tr("手手动测量 测量开始"));
+
     buttonClStart->setEnabled(false);
     buttonClStop->setEnabled(true);
     buttonClPause->setEnabled(true);
@@ -434,5 +439,8 @@ void QWidgetCl::slotGetHalfContinue( )
 void QWidgetCl::slotGetAuto( )
 {
     buttonClStart->setEnabled( true );
+    buttonClPause->setEnabled( false );
+    buttonClStop->setEnabled( false );
+
     pPlainTextEdit->appendHtml( tr("<font color=\"#ff0000\">自动测量结束</font>") );
 }

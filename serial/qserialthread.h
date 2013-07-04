@@ -62,6 +62,7 @@ public:
     void pauseAuto( );
     void continueAuto( );
     void setHalfContinue( ){ bHalfContinue = true ;}
+    void setStateNotStart( ){ iState = STATE_NOTSTART ;}
 
     void clearCx( ){ listCx.clear( ); }
     void appendCx( clsCx  cx ){ listCx.append( cx ); }
