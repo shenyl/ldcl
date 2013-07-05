@@ -106,12 +106,12 @@ void QSerialThread::runFullAuto( )
         return ;
     }
 
-    qDebug( ) << 0  << bHalfContinue ;
+//    qDebug( ) << 0  << bHalfContinue ;
     if( iAutoMode == MODE_HALF && !bHalfContinue ){ //半自动模式下继续标志
         msleep(200);
         return ;
     }
-    qDebug( ) << 1 ;
+//    qDebug( ) << 1 ;
     switch( iState ){
     case STATE_NOTSTART:
         moveFish(  );
