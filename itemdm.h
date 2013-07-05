@@ -15,7 +15,7 @@ public:
 
     QRectF boundingRect() const;
 
-    void setWater( float fGcWater );
+    void setWater( float fGcWater );  //设水面高程
     QPointF getFishPos( float fQdj, float fBelowWater );
 
 protected:

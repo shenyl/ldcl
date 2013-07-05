@@ -269,9 +269,17 @@ void QWidgetCl::slotFishPos( float *fPos , int iNums, bool bRes  )
 
     slotGetMsg(str);
 
+    //停止之后是红灯  行进之中是绿灯
+    if( bRes ){
+        pWidDm->setFishPos( *(fPos+3), *(fPos+4), false ); //有结果 bMoving是false
+    }
+    else{
+        pWidDm->setFishPos( *(fPos+3), *(fPos+4), true  ); //无结果 bMoving是true
+    }
+
 }
 
-//显示流速结果
+//显示流速测量结果
 void QWidgetCl::slotClRes( float *fCl, int iNums, bool bRes )
 {
     iNums;
@@ -441,6 +449,8 @@ void QWidgetCl::slotGetAuto( )
     buttonClStart->setEnabled( true );
     buttonClPause->setEnabled( false );
     buttonClStop->setEnabled( false );
+
+    radioManual->setChecked( true );
 
     pPlainTextEdit->appendHtml( tr("<font color=\"#ff0000\">自动测量结束</font>") );
 }

@@ -177,6 +177,7 @@ void QSerialThread::computerLs( )
     fLs = sum/sum1 ;
 
     QString strV, strT, strN, strK, strC, strCdSs ;
+    int iLen ;
 
     strK = QString("%1").arg( currentCx.fK );
     strC = QString("%1").arg( currentCx.fC );
@@ -184,16 +185,26 @@ void QSerialThread::computerLs( )
     for(i=0; i<fNums[currentCx.iClff]; i++){
         strV += QString("%1/").arg(currentCx.fV[i]);
     }
+    iLen = strV.length() ;
+    strV = strV.left( iLen - 1 );
+
     for(i=0; i<fNums[currentCx.iClff]; i++){
         strT += QString("%1/").arg(currentCx.fT[i]);
     }
+    iLen = strT.length();
+    strT = strT.left( iLen - 1 );
+
     for(i=0; i<fNums[currentCx.iClff]; i++){
         strN += QString("%1/").arg(currentCx.fN[i]);
     }
+    iLen = strN.length() ;
+    strN = strN.left( iLen - 1 );
+
     for(i=0; i<fNums[currentCx.iClff]; i++){
         strCdSs += QString("%1/").arg(currentCx.fCdSs[i]);
     }
-
+    iLen = strCdSs.length() ;
+    strCdSs = strCdSs.left( iLen - 1 );
 
     QString strSql ;
 
@@ -220,6 +231,7 @@ void QSerialThread::moveFish(  )
     if( listCx.isEmpty() ){
         iAutoState = AUTO_STATE_STOP ;
         iState = STATE_NOTSTART ;
+        iAutoMode = MODE_MANU ;
         emit sigAuto( );
         return ;
     }
@@ -392,16 +404,16 @@ void QSerialThread::sendCmdCl(  )
     readComm( );
 
     writeComm( chCL[0][1] );
-    msleep(2500);
+    msleep(500);
     readComm( );
 
 
     writeComm( chCL[1][0] );
-    msleep(1000);
+    msleep(500);
     readComm( );
 
     writeComm( chCL[1][1] );
-    msleep(1000);
+    msleep(500);
     readComm( );
 
     iState = STATE_CL ; //置测量状态
@@ -482,7 +494,7 @@ void QSerialThread::queryCl( )
         readComm( );
 
         writeComm( chCL[0][1] );
-        msleep(2500);
+        msleep(500);
         readComm( );
 
         writeComm( chCL[1][0] );
@@ -490,7 +502,7 @@ void QSerialThread::queryCl( )
         readComm( );
 
         writeComm( chCL[1][1] );
-        msleep(2500);
+        msleep(500);
         readComm( );
 
         //发结果信号
@@ -509,8 +521,14 @@ void QSerialThread::queryCl( )
             QString strTime ;
             strTime.sprintf( "%04d-%02d-%02d %02d:%02d:%02d ", d.year(),d.month(),d.day(),t.hour(),t.minute(),t.second() );
 
-            strSql = QString("insert into result( dt, qdj, ss, ls ) values( '%1', %2, %3, %4 )" )
-                    .arg(strTime).arg(fQdj).arg(fSs).arg( *( fCl+4 ) );
+            strSql = QString("insert into result( dt, qdj, ss, ls, fV, fT, fN, fK, fC, fCdSs ) values( '%1', %2, %3, %4, '%5', '%6', '%7', '%8', '%9', '%10' )" )
+                    .arg(strTime).arg(fQdj).arg(fSs).arg( *( fCl+4 ) )
+                    .arg(QString("%1").arg( *(fCl+4) )) //V
+                    .arg(QString("%1").arg( *(fCl+2) )) //T
+                    .arg(QString("%1").arg( *(fCl+3) )) //N
+                    .arg(QString("%1").arg( *(fCl+0) )) //K
+                    .arg(QString("%1").arg( *(fCl+1) )) //C
+                    .arg( QString("%1").arg( fSs ) );
 
             QSqlQuery query;
             query.exec( strSql );

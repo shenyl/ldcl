@@ -31,7 +31,7 @@ QDlgResult::QDlgResult( QString strTabName, QWidget* parent, Qt::WindowFlags fla
     buttonDelete = new QPushButton(tr("删除&D"));
     buttonUpdate = new QPushButton(tr("保存&S"));
     buttonClose = new QPushButton(tr("关闭&C"));
-    buttonSaveXls = new QPushButton(tr("另存XLS&C"));
+    buttonSaveXls = new QPushButton(tr("另存XLS"));
 
     connect(buttonInsert, SIGNAL(clicked()), this, SLOT(insertRow()));
     connect(buttonDelete, SIGNAL(clicked()), this, SLOT(deleteRow()));
@@ -68,6 +68,8 @@ QDlgResult::QDlgResult( QString strTabName, QWidget* parent, Qt::WindowFlags fla
 //    bottomLayout -> addWidget(buttonInsert);
 //    bottomLayout -> addWidget(buttonDelete);
 //    bottomLayout -> addWidget(buttonUpdate);
+
+    bottomLayout -> addWidget(buttonSaveXls);
     bottomLayout -> addWidget(buttonClose);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -77,7 +79,7 @@ QDlgResult::QDlgResult( QString strTabName, QWidget* parent, Qt::WindowFlags fla
 
     setLayout( mainLayout );
 
-    resize(800,400);
+    resize(1200,600);
     slotQuery( );
     setWindowTitle(tr("流速测量结果"));
 
@@ -157,7 +159,7 @@ void QDlgResult::slotQuery( )
 {
     QString strSQL ;
 
-    strSQL = QString("select dt,qdj,ss,ls,bz from result where dt > '%1' and dt < '%2' order by dt desc")
+    strSQL = QString("select dt,qdj,ss,ls,fV, fT, fN, fK, fC, fCdSs  from result where dt > '%1' and dt < '%2' order by dt desc")
             .arg( formatTime( edtStart->text()) ).arg( formatTime(edtEnd->text()) );
 
     //    qDebug( ) << strSQL ;
