@@ -13,6 +13,8 @@
 #include <QLineEdit>
 #include <QSqlQueryModel>
 
+//add line
+
 //垂线管理类
 class QDlgResult : public QDialog
 {
