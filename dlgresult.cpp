@@ -9,9 +9,6 @@
 #include <QDebug>
 #include <QDateTime>
 
-//add line
-//add line2
-
 QDlgResult::QDlgResult( QString strTabName, QWidget* parent, Qt::WindowFlags flags )
     : QDialog(parent, flags)
 {
