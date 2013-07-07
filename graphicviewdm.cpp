@@ -64,7 +64,7 @@ void QGraphicViewDm::setFishPos( float fQdj, float fBelowWater, bool bIsMoving )
 {
     QPointF p ;
     p = pItemDm->getFishPos( fQdj, fBelowWater ) ;
-    pFish->setPos( p );
+//    pFish->setPos( p );   //Éè·ÉÓãÎ»ÖÃ
 
     if( bIsMoving )
         pFish->setBrush( QBrush(Qt::green) );
