@@ -70,6 +70,10 @@ public:
 
     void runManu( );
     void runFullAuto( );
+
+    void runCzff1(  );
+    void runCzff2(  );
+
     void computerLs( );
     void moveFish(  );
 
