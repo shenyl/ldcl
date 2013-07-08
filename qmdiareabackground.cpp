@@ -6,7 +6,7 @@ QMdiAreaBackGround::QMdiAreaBackGround( QWidget * parent )
     : QMdiArea( parent )
 {
     bool b ;
-//    b = pix.load( ":/images/title.png" );
+    b = pix.load( ":/images/background.png" );
 }
 
 //×Ô»æÖÆÍ¼ÐÎ

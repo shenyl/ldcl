@@ -28,7 +28,7 @@ private:
     void createMenusAndActions();
     void connectDatabase();
 
-//    void createToolBar( );
+    void createToolBar( );
 
     void closeWin( );
 

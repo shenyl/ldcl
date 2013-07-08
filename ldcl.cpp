@@ -25,6 +25,7 @@ QLdcl::QLdcl(QWidget* parent, Qt::WindowFlags flags)
 	: QMainWindow(parent, flags)
 {
     createMenusAndActions();
+    createToolBar( );
 
     m_mdiArea = new QMdiAreaBackGround;
     m_mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -52,6 +53,7 @@ void QLdcl::createMenusAndActions()
 
     m_actConfigDm = new QAction(tr("断面设置"), this);
     m_actConfigDm->setToolTip(tr("断面设置"));
+    m_actConfigDm->setIcon(QIcon(":/images/dm.png"));
     m_actConfigDm->setShortcut( QKeySequence(tr("Ctrl+A")) );
     m_menuFunction->addAction(m_actConfigDm);
 
@@ -59,6 +61,7 @@ void QLdcl::createMenusAndActions()
 
     m_actSysconfig = new QAction(tr("系统设置"), this);
     m_actSysconfig->setToolTip(tr("系统设置"));
+    m_actSysconfig->setIcon(QIcon(":/images/sysconfig.png"));
     m_actSysconfig->setShortcut( QKeySequence(tr("Ctrl+C")) );
     m_menuFunction->addAction(m_actSysconfig);
 
@@ -66,19 +69,11 @@ void QLdcl::createMenusAndActions()
 
 
     m_actCl = new QAction(tr("测量"), this);
-    m_actCl->setToolTip(tr("测量)"));
+    m_actCl->setToolTip(tr("测量"));
     m_actCl->setShortcut( QKeySequence(tr("Ctrl+B")) );
+    m_actCl->setIcon(QIcon(":/images/ldcl.png"));
     m_menuFunction->addAction(m_actCl);
     connect(m_actCl, SIGNAL(triggered()), this, SLOT(slotCl()));
-
-//    m_actInOutRecord = new QAction(tr("车辆进出场"), this);
-//    m_actInOutRecord->setToolTip(tr("车辆进出场"));
-//    m_menuFunction->addAction( m_actInOutRecord );
-//    connect(m_actInOutRecord, SIGNAL(triggered()), this, SLOT( slotInOut( ) ));
-
-//    m_actShowMessage = new QAction(tr("信息显示"), this);
-//    m_menuFunction->addAction( m_actShowMessage );
-//    connect(m_actShowMessage, SIGNAL(triggered()), this, SLOT(slotShowMessage()));
 
     m_actExit = new QAction(tr("退出"), this);
     m_actExit->setToolTip(tr("退出"));
@@ -98,16 +93,19 @@ void QLdcl::createMenusAndActions()
 
 }
 
-////建立工具栏
-//void QLdcl::createToolBar( )
-//{
-//    setIconSize( QSize(64, 64) ); //更改图标的大小
+//建立工具栏
+void QLdcl::createToolBar( )
+{
+    setIconSize( QSize(64, 64) ); //更改图标的大小
 
-//    QToolBar * toolBar= addToolBar("Tool");
+    QToolBar * toolBar= addToolBar( tr("工具栏") );
 
-//    addToolBar( Qt::LeftToolBarArea, toolBar );
+    toolBar->addAction( m_actConfigDm );
+    toolBar->addAction( m_actSysconfig );
+    toolBar->addAction( m_actCl );
 
-////    toolBar->setOrientation( Qt::Vertical );
+    addToolBar( Qt::LeftToolBarArea, toolBar );
+    toolBar->setOrientation( Qt::Vertical );
 
 //    QToolButton * pToolButtonVehicle = new QToolButton ;
 //    pToolButtonVehicle->setIcon(QIcon(":/images/vehicle.png"));
@@ -133,11 +131,11 @@ void QLdcl::createMenusAndActions()
 //    pToolButtonHelp->setToolTip ( tr("帮助") );
 //    connect( pToolButtonHelp, SIGNAL(clicked()),this,SLOT( slotAbout()));
 
-////    toolBar->addWidget( pToolButtonVehicle );
-////    toolBar->addWidget( pToolButtonDriver );
-////    toolBar->addWidget( pToolButtonInOut );
-////    toolBar->addWidget( pToolButtonHelp );
-//}
+//    toolBar->addWidget( pToolButtonVehicle );
+//    toolBar->addWidget( pToolButtonDriver );
+//    toolBar->addWidget( pToolButtonInOut );
+//    toolBar->addWidget( pToolButtonHelp );
+}
 
 
 //联接数据库
