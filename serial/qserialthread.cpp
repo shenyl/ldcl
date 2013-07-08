@@ -164,6 +164,18 @@ void QSerialThread::runFullAuto( )
     }
 }
 
+//操作方法1  应用水深
+void QSerialThread::runCzff1(  )
+{
+
+}
+
+//操作方法2  先测水深
+void QSerialThread::runCzff2(  )
+{
+
+}
+
 //计算流速
 void QSerialThread::computerLs( )
 {
