@@ -402,6 +402,9 @@ void QSerialThread::sendCmdMove( int iCmd )
     case CMD_DOWN:
         iState = STATE_VER ;
         break;
+    case CMD_STOP:
+        iState = STATE_NOTSTART ;
+        break;
     default:
         break;
     }

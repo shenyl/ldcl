@@ -5,5 +5,9 @@
         <file>images/right.png</file>
         <file>images/stop.png</file>
         <file>images/up.png</file>
+        <file>images/background.png</file>
+        <file>images/ldcl.png</file>
+        <file>images/sysconfig.png</file>
+        <file>images/dm.png</file>
     </qresource>
 </RCC>
