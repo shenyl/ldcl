@@ -36,7 +36,7 @@ QLdcl::QLdcl(QWidget* parent, Qt::WindowFlags flags)
 
     connectDatabase();
 
-    setWindowTitle(tr("缆道测速系统"));
+    setWindowTitle(tr("水文缆道测控系统"));
 
     showMaximized( );
 }
@@ -157,7 +157,7 @@ void QLdcl::connectDatabase()
 void QLdcl::slotAbout()
 {
     QMessageBox msgBox ;
-    msgBox.about(this, tr("关于..."), tr("缆道测速系统 \n ver1.000"));
+    msgBox.about(this, tr("关于..."), tr("水文缆道测控系统 \n ver1.000"));
 }
 
 //断面设置

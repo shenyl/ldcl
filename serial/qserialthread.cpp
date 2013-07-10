@@ -335,7 +335,7 @@ void QSerialThread::queryMove( )
 
 }
 
-void QSerialThread::setConfigQdj( QString strValue )
+bool QSerialThread::setConfigQdj( QString strValue )
 {
     writeComm( 'j' );
     msleep(500);
@@ -355,9 +355,28 @@ void QSerialThread::setConfigQdj( QString strValue )
     readComm( );
 
     emit sigSendMsg(tr("设置起点距完成!") + QString("%1").arg( (char*)chBufInput  )  );
+
+    //判断设备是否成功，如果成功执行下一步，如果不成功则重试一次
+    QString strResult ;
+    bool bRes = false ;
+    strResult.sprintf("%s",  (char*)chBufInput );
+    bRes = strResult.contains( QString("%1").arg(chValue)  );
+
+    if( bRes ) return true ;
+
+    //第二次设置起点距参数
+    serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
+    msleep(500);
+    readComm( );
+    emit sigSendMsg(tr("设置起点距完成!") + QString("%1").arg( (char*)chBufInput  )  );
+    strResult.sprintf("%s",  (char*)chBufInput );
+    bRes = strResult.contains( QString("%1").arg(chValue)  );
+
+    return bRes ;
+
 }
 
-void QSerialThread::setConfigSs( QString strValue )
+bool QSerialThread::setConfigSs( QString strValue )
 {
     writeComm( 'j' );
     msleep(500);
@@ -377,6 +396,24 @@ void QSerialThread::setConfigSs( QString strValue )
     readComm( );
 
     emit sigSendMsg(tr("设置水深完成!") + QString("%1").arg( (char*)chBufInput ) );
+
+    //判断设备是否成功，如果成功执行下一步，如果不成功则重试一次
+    QString strResult ;
+    bool bRes = false ;
+    strResult.sprintf("%s",  (char*)chBufInput );
+    bRes = strResult.contains( QString("%1").arg(chValue)  );
+
+    if( bRes ) return true ;
+
+    //第二次设置水深参数
+    serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
+    msleep(500);
+    readComm( );
+    emit sigSendMsg(tr("设置水深完成!") + QString("%1").arg( (char*)chBufInput  )  );
+    strResult.sprintf("%s",  (char*)chBufInput );
+    bRes = strResult.contains( QString("%1").arg(chValue)  );
+
+    return bRes ;
 }
 
 static char chCmd[5][2] = { 'l', 'w', 'l', 'n', 'l', 'y', 'l', 'x', 'l', 'm' };
@@ -403,12 +440,12 @@ void QSerialThread::sendCmdMove( int iCmd )
         iState = STATE_VER ;
         break;
     case CMD_STOP:
-        iState = STATE_NOTSTART ;
+        if( iAutoMode == MODE_MANU )
+            iState = STATE_NOTSTART ;
         break;
     default:
         break;
     }
-
 }
 
 static char chCL[3][2] = { 'l', 'b', 'l', 'r', 'l', 'a' };

@@ -50,8 +50,8 @@ public:
     void run( );
 
     void setComNo( int iComNo ){ this->iComNo = iComNo; }
-    void setConfigQdj( QString strValue );
-    void setConfigSs( QString strValue );
+    bool setConfigQdj( QString strValue );
+    bool setConfigSs( QString strValue );
     void sendCmdMove( int iCmd );
     void sendCmdCl( );
     void queryMove( );
