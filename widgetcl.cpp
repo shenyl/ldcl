@@ -386,6 +386,8 @@ void QWidgetCl::slotClStop(  )
     buttonClStart->setEnabled( true );
     buttonClStop->setEnabled( false );
     buttonClPause->setEnabled(false);
+
+    radioManual->setChecked( true );
 }
 
 void QWidgetCl::slotClPause(  )

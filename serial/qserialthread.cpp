@@ -35,6 +35,7 @@ QSerialThread::QSerialThread(QObject *parent) :
     iCxClid = 0;                    //置测点位置
     iAutoState = AUTO_STATE_STOP ;  //停止状态
     bHalfContinue = true ;          //半自动测速状态时是否继续
+    bSecondHeightIng = false ;      //
 }
 
 void QSerialThread::init(  )
@@ -241,10 +242,18 @@ void QSerialThread::moveFish(  )
 {
     iCxClid = 0;
     if( listCx.isEmpty() ){
-        iAutoState = AUTO_STATE_STOP ;
-        iState = STATE_NOTSTART ;
-        iAutoMode = MODE_MANU ;
-        emit sigAuto( );
+        if( bSecondHeightIng ){     //第二次提升完成后结束全自动过程
+            iAutoState = AUTO_STATE_STOP ;
+            iState = STATE_NOTSTART ;
+            iAutoMode = MODE_MANU ;
+            bSecondHeightIng = false ;      //
+            emit sigAuto( );
+        }
+        else{
+            bSecondHeightIng = true ;      //
+            sendCmdMove( CMD_UP );
+        }
+
         return ;
     }
     else{
@@ -611,6 +620,8 @@ void QSerialThread::stopAuto( )
     listCx.clear();
     iAutoState = AUTO_STATE_STOP ;
     iState = STATE_NOTSTART ;
+    bSecondHeightIng = false ;      //
+    iAutoMode = MODE_MANU ;
 }
 
 

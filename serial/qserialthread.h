@@ -12,7 +12,7 @@
 #define  STATE_HOR          0       //水平移动状态
 #define  STATE_HOR_OVER     1       //水平移动状态结束
 
-#define  STATE_VER          2       //垂直移动状态
+#define  STATE_VER          2       //垂直向下移动状态
 #define  STATE_VER_OVER     3       //向下垂直移动状态结束
 
 #define  STATE_CL           4       //测量状态
@@ -105,6 +105,7 @@ private:
     int iCxClid ;       //垂线测量编号
     clsCx  currentCx ;  //当前垂线
 //    int iCxClState ;    //垂线测量状态
+    bool bSecondHeightIng ; //第二档上提正在进行中
 
 signals:
     void sigFishPos( float * fPos, int iNums, bool bRes );  // bRes 表示是在测量中还是测量结果

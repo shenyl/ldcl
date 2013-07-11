@@ -103,10 +103,12 @@ QPointF ItemDm::getFishPos( float fQdj, float fBelowWater )
     float fGc ;  //当前铅鱼位置的高程
     fGc = fGcWater - fBelowWater ;
 
-    if( fBelowWater < 0 )
-        point.setY( fWaterPos );
-    else
-        point.setY( fGcMinPos - ( fGc - fGcMin) / (fGcMax - fGcMin) *rect1.height() );
+//    if( fBelowWater < 0 )
+//        point.setY( fWaterPos );
+//    else
+//        point.setY( fGcMinPos - ( fGc - fGcMin) / (fGcMax - fGcMin) *rect1.height() );
+
+    point.setY( fGcMinPos - ( fGc - fGcMin) / (fGcMax - fGcMin) *rect1.height() );
 
     return point ;
 }
