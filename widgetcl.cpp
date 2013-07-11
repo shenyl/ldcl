@@ -258,6 +258,7 @@ void QWidgetCl::slotSetQdj( float fQdj, float fSs )
 //获取当前起点距
 void QWidgetCl::slotGetQdj( )
 {
+    threadserial.resetQueryMovingCount( );
     threadserial.queryMove( );
 }
 

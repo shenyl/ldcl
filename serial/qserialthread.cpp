@@ -292,7 +292,9 @@ static char ay[] = "AY" ;   //还在行走过程中
 static char py[] = "PY" ;   //行走结束
 //00 0 00 +010.0  -01.07   010.0  000.0AY
 //00 0 00 +010.0  -01.07   010.0  000.0PY
-void QSerialThread::queryMove( )
+
+//bool bVerifyTime  是否验证时间的标志
+void QSerialThread::queryMove(  )
 {
     writeComm( 'j' );
     msleep(500);
@@ -311,14 +313,14 @@ void QSerialThread::queryMove( )
 //    qDebug( ) << "result" << bResult1 << bResult2 ;
 
     bool bRes = false ;
-    if( bResult1 ) { msleep(500); bRes = false ; }
+    if( bResult1 ) { iQueryMovingCount++; msleep(500); bRes = false ; }
 
     if( bResult2 ) {
-        if( iState == STATE_HOR )
+        if( iState == STATE_HOR && iQueryMovingCount > 0 )
             iState = STATE_HOR_OVER ;
-        if( iState == STATE_VER )
+        if( iState == STATE_VER && iQueryMovingCount > 0 )
             iState = STATE_VER_OVER ;
-        if( iState == STATE_VER_UP )
+        if( iState == STATE_VER_UP && iQueryMovingCount > 0 )
             iState = STATE_VER_UP_OVER ;
         bRes = true ;
     }
@@ -455,6 +457,8 @@ void QSerialThread::sendCmdMove( int iCmd )
     default:
         break;
     }
+
+    iQueryMovingCount = 0; //计数清零
 }
 
 static char chCL[3][2] = { 'l', 'b', 'l', 'r', 'l', 'a' };

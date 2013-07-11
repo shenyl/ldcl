@@ -22,6 +22,7 @@ public slots:
     void slotConfigDm( );
     void slotSysconfig( );
     void slotCl( );
+    void slotResultQ( );
     void slotAbout( );
 
 private:
@@ -38,6 +39,7 @@ private:
     QAction* m_actConfigDm;
     QAction* m_actSysconfig;
     QAction* m_actCl;
+    QAction* m_actResultQ;
 
     QAction* m_actExit;
 

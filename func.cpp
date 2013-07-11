@@ -10,6 +10,7 @@
 
 #include <QSqlRecord>
 #include <QSqlField>
+#include <QSqlQuery>
 
 #define  APP_JBCL1   1
 #define  APP_JBJL2   2
@@ -220,4 +221,20 @@ void QFunc::saveXLS( QTableView * pTable, QSqlQueryModel *tabModel )
     excelWorkBook->dynamicCall("Close(Boolean)", false);
 
     excelObj.dynamicCall("Quit()");
+}
+
+
+//获取参数设置指定项的值
+QString  QFunc::getSysconfig( int iId )
+{
+    QSqlQuery query;
+    QString strSql ;
+    strSql = QString( "select content from sysconfig where id = %1" ).arg(iId) ;
+    query.exec( strSql );
+
+    QString strValue ;
+    while ( query.next() ){
+        strValue = query.value(0).toString();
+    }
+    return strValue ;
 }

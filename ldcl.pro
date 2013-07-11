@@ -22,6 +22,7 @@ SOURCES += \
         itemdm.cpp \
         graphicviewdm.cpp \
         dlgresult.cpp \
+        dlgresultq.cpp \
         clscx.cpp \
         func.cpp \
     getdm.cpp
@@ -43,6 +44,7 @@ HEADERS += \
         itemdm.h \
         graphicviewdm.h \
         dlgresult.h \
+        dlgresultq.h \
         clscx.h \
         func.h \
     getdm.h

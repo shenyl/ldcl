@@ -2,6 +2,7 @@
 #include "widgetcl.h"
 #include "widgetcxe.h"
 #include "qmdiareabackground.h"
+#include "dlgresultq.h"
 
 //#include "QWidgetManage.h"
 //#include "qdlglogin.h"
@@ -75,6 +76,13 @@ void QLdcl::createMenusAndActions()
     m_menuFunction->addAction(m_actCl);
     connect(m_actCl, SIGNAL(triggered()), this, SLOT(slotCl()));
 
+    m_actResultQ = new QAction(tr("流量计算"), this);
+    m_actResultQ->setToolTip(tr("流量计算"));
+    m_actResultQ->setShortcut( QKeySequence(tr("Ctrl+D")) );
+    m_actResultQ->setIcon(QIcon(":/images/ldcl.png"));
+    m_menuFunction->addAction(m_actResultQ);
+    connect(m_actResultQ, SIGNAL(triggered()), this, SLOT(slotResultQ()));
+
     m_actExit = new QAction(tr("退出"), this);
     m_actExit->setToolTip(tr("退出"));
     m_actExit->setShortcut( QKeySequence(tr("Ctrl+Q")) );
@@ -103,6 +111,7 @@ void QLdcl::createToolBar( )
     toolBar->addAction( m_actConfigDm );
     toolBar->addAction( m_actSysconfig );
     toolBar->addAction( m_actCl );
+    toolBar->addAction( m_actResultQ );
 
     addToolBar( Qt::LeftToolBarArea, toolBar );
     toolBar->setOrientation( Qt::Vertical );
@@ -203,4 +212,10 @@ void QLdcl::closeWin( )
     if (m_mdiArea->currentSubWindow()) {
         m_mdiArea->currentSubWindow()->close();
     }
+}
+
+void QLdcl::slotResultQ( )
+{
+    QDlgResultQ  dlg ;
+    dlg.exec( );
 }

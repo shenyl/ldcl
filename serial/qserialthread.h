@@ -77,6 +77,8 @@ public:
     void computerLs( );
     void moveFish(  );
 
+    void resetQueryMovingCount( ){ iQueryMovingCount = 0; }
+
 protected:
     void writeComm( char c );
     void readComm( );
@@ -97,6 +99,7 @@ private:
     float fPos[7]  ;    //从通讯协议中取来的位置  4 当前起点距 5 当前水深 6 预置起点距 7 预置水深
     float fCl[5]  ;     //流速测量结果  K C T N V
     int iState ;        //状态
+    int iQueryMovingCount ; //查询移动的计数
 
     QList <clsCx>  listCx ;
     int iAutoMode ;     //自动运行模式

@@ -22,6 +22,8 @@ public:
 
     void saveXLS( QTableView * pTable, QSqlQueryModel * tabModel  );
 
+    QString getSysconfig( int iId );
+
 private:
     QSqlDatabase m_mainDB ;
 
