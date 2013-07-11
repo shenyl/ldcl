@@ -14,7 +14,8 @@ public:
     explicit QGraphicViewDm( QWidget *parent = 0 );
 
     void setFishPos( float fQdj, float fBelowWater, bool bIsMoving );
-    void setWater( float fGcWater );
+public slots:
+    void setWater( QString strWaterGc );
 
 protected:
     void resizeEvent ( QResizeEvent * event );

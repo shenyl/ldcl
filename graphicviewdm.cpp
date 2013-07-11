@@ -1,7 +1,5 @@
 #include "graphicviewdm.h"
 
-
-
 #include <QGraphicsRectItem>
 #include <QGraphicsPolygonItem>
 #include <QResizeEvent>
@@ -21,7 +19,7 @@ QGraphicViewDm::QGraphicViewDm(QWidget *parent) :
     iHeight = 230 ;
 
     QGraphicsScene *scene = new QGraphicsScene(this);
-    scene->setSceneRect(-iWidth/2,-iHeight/2,iWidth,iHeight);
+    scene->setSceneRect(-iWidth/2,-iHeight/2,iWidth,iHeight);   //(0,0)在中心位置
     setScene(scene);
     setCacheMode(CacheBackground);
 
@@ -45,18 +43,15 @@ QGraphicViewDm::QGraphicViewDm(QWidget *parent) :
 
 //    qDebug( ) << fAdjust1 << fAdjust2 << r.adjusted( fAdjust1 , fAdjust2, -1*fAdjust1, -1*fAdjust2 ) ;
     pItemDm->init( r.adjusted( fAdjust1 , fAdjust2, -1*fAdjust1, -1*fAdjust2 ) );
-    pItemDm->setWater( 1250.00 );
 
     scene->addItem( pItemDm );
     pItemDm->setPos( 0, 0 );
 
-    //制作
+    //制作铅鱼显示
     QRectF  rectFish( 0, 0, 15, 5 );
     pFish = scene->addEllipse( rectFish );
     pFish->setPos( 0, 0 );
-    //pFish->setBrush( QBrush(Qt::red) );
     pFish->setBrush( QBrush(Qt::green) );
-
 }
 
 //设置铅鱼的位置
@@ -64,7 +59,7 @@ void QGraphicViewDm::setFishPos( float fQdj, float fBelowWater, bool bIsMoving )
 {
     QPointF p ;
     p = pItemDm->getFishPos( fQdj, fBelowWater ) ;
-//    pFish->setPos( p );   //设飞鱼位置
+    pFish->setPos( p );   //设飞鱼位置
 
     if( bIsMoving )
         pFish->setBrush( QBrush(Qt::green) );
@@ -73,9 +68,9 @@ void QGraphicViewDm::setFishPos( float fQdj, float fBelowWater, bool bIsMoving )
 }
 
 //设水面高程
-void QGraphicViewDm::setWater( float fGcWater )
+void QGraphicViewDm::setWater( QString strWaterGc )
 {
-    pItemDm->setWater( fGcWater );
+    pItemDm->setWater( strWaterGc.toFloat( ) );
 }
 
 //

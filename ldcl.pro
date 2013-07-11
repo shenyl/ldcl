@@ -23,7 +23,8 @@ SOURCES += \
         graphicviewdm.cpp \
         dlgresult.cpp \
         clscx.cpp \
-        func.cpp
+        func.cpp \
+    getdm.cpp
 
 #        QWidgetManage.cpp \
 #        sysconfig.cpp \
@@ -43,7 +44,8 @@ HEADERS += \
         graphicviewdm.h \
         dlgresult.h \
         clscx.h \
-        func.h
+        func.h \
+    getdm.h
 
 #         QWidgetManage.h \
 #         sysconfig.h \

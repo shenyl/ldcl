@@ -11,6 +11,7 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
+#include "getdm.h"
 
 //垂线管理类
 
@@ -23,11 +24,14 @@ public:
 
     QSqlTableModel * getTableModel( ){ return tabModel ;}
 
+//    float fWaterGc ;    //水面高程
+
 private slots:
     void insertRow( );
     void deleteRow( );
     void updateRow( );
     void getFloat( QModelIndex index );
+    void getWaterDepth(  ) ;
 
 private:
     void retrieveTableView();
@@ -40,10 +44,17 @@ private:
     QPushButton *buttonUpdate ;
     QPushButton *buttonClose ;
 
+    QLabel * pLabelGc ;
+    QLineEdit  * edtWaterDepth ;    //水面高程
+    QPushButton *buttonWaterDepth ;  //计算应用水深
+
     QString strTabName ;
+
+    QGetDm  getdm ;
 
 signals:
     void sigQdjSS( float fQdj, float fSs );
+    void sigWaterGc( QString  );
 
 };
 

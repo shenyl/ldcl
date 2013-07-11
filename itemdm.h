@@ -27,10 +27,14 @@ private:
 
      float fGcMin, fGcMax ;         //
      float fGcMinPos, fGcMaxPos ;   //
+
      float fQdjMin, fQdjMax ;       //
      float fQdjMinPos, fQdjMaxPos ; //
+
      float fGcWater ;               //水平面的高程
      float fWaterPos ;              //水平面的位置
+
+     float fQdjOffset ;
 
 };
 

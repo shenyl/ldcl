@@ -118,7 +118,9 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
              this, SLOT( slotSetQdj( float , float ) ) );
 
     pWidDm = new QGraphicViewDm ;
-    pWidDm->setWater( getSysconfig( 1 ).toFloat() );
+    pWidDm->setWater( getSysconfig( 1 ) );
+
+    connect( pWidCx, SIGNAL( sigWaterGc(QString) ), pWidDm, SLOT( setWater(QString) ) );
 
     pPlainTextEdit = new QPlainTextEdit ;
     pPlainTextEdit->setMaximumBlockCount( 130 ); //最大行数
@@ -336,6 +338,7 @@ void QWidgetCl::slotClStart(  )
     if( iAutoMode != MODE_MANU )
         lblAutoState->setText(tr("自动测量开始"));
     else{
+        threadserial.startAutoMode( iAutoMode );    //设手动模式
         lblAutoState->setText(tr("手动测量 测量开始"));
         return ;
     }

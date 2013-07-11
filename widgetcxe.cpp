@@ -77,10 +77,32 @@ QWidgetCxE::QWidgetCxE( QString strTabName, QWidget* parent, Qt::WindowFlags fla
 
     tabView->setCurrentIndex(tabModel->index(-1, 0));         //设置当前可编辑行
 
+    if (strTabName == tr("cx") ){
+        pLabelGc = new QLabel( tr("水面高程") );
+        edtWaterDepth = new QLineEdit ;
+        buttonWaterDepth = new QPushButton(tr("计算垂线水深&W"));
+        connect(buttonWaterDepth, SIGNAL(clicked()), this, SLOT(getWaterDepth()));
+
+        getdm.readDm();
+        QString  strWaterSurface ;
+        strWaterSurface = getdm.getSysconfig( 1 ); //1 是水面高程的内容
+        edtWaterDepth->setText( strWaterSurface );
+
+//        fWaterGc = strWaterSurface.toFloat( );
+
+//        float fQdj ;
+//        fQdj = getdm.getQdj(  1241.47, 0 );
+//        qDebug( ) << "qdj :" << fQdj ;
+
+//        fQdj = getdm.getQdj(  1241.47, 1 );
+//        qDebug( ) << "qdj :" << fQdj ;
+    }
+
     buttonInsert = new QPushButton(tr("增加&A"));            //设置功能按钮
     buttonDelete = new QPushButton(tr("删除&D"));
     buttonUpdate = new QPushButton(tr("保存&S"));
 //    buttonClose = new QPushButton(tr("关闭&C"));
+
 
     connect(buttonInsert, SIGNAL(clicked()), this, SLOT(insertRow()));
     connect(buttonDelete, SIGNAL(clicked()), this, SLOT(deleteRow()));
@@ -88,7 +110,13 @@ QWidgetCxE::QWidgetCxE( QString strTabName, QWidget* parent, Qt::WindowFlags fla
 //    connect(buttonClose, SIGNAL(clicked()), this, SLOT(close()));
 
     QHBoxLayout *bottomLayout = new QHBoxLayout;
-    bottomLayout->addStretch( );
+
+    if( strTabName == tr("cx") ){
+        bottomLayout -> addWidget(pLabelGc);
+        bottomLayout -> addWidget(edtWaterDepth);
+        bottomLayout -> addWidget(buttonWaterDepth);
+    }
+//    bottomLayout->addStretch( );
     bottomLayout -> addWidget(buttonInsert);
     bottomLayout -> addWidget(buttonDelete);
     bottomLayout -> addWidget(buttonUpdate);
@@ -99,9 +127,6 @@ QWidgetCxE::QWidgetCxE( QString strTabName, QWidget* parent, Qt::WindowFlags fla
     mainLayout -> addLayout( bottomLayout );
 
     setLayout( mainLayout );
-
-
-
 }
 
 QWidgetCxE::~QWidgetCxE()
@@ -152,7 +177,52 @@ void QWidgetCxE::getFloat( QModelIndex index )
     float fQdj = record.value("qdj").toFloat( );
     float fSs = record.value("ss").toFloat( );
 
-    qDebug( ) << fQdj << fSs ;
+//    qDebug( ) << fQdj << fSs ;
 
     emit sigQdjSS( fQdj, fSs );
 }
+
+//获取垂线的水深，由水面的高程减去垂线底部的高程
+void QWidgetCxE::getWaterDepth(  )
+{
+    float fSs , fQdj;
+
+    int i, iRowCount ;
+    iRowCount = tabModel->rowCount( );
+
+    QSqlRecord record ;
+
+    for(i=0; i<iRowCount; i ++ ){
+        record = tabModel->record( i );
+        fQdj = record.value("qdj").toFloat( );
+        fSs = getdm.getSs( edtWaterDepth->text().toFloat(), fQdj );
+        tabModel->setData( tabModel->index( i, 2 ), QVariant( fSs ) );
+    }
+
+    //修改系统编号为1的值
+    QSqlQuery query;
+    QString strSql ;
+    strSql = QString( "update sysconfig set content = '%1' where id = 1" ).arg( edtWaterDepth->text() ) ;
+    query.exec( strSql );
+
+    emit sigWaterGc( edtWaterDepth->text() );
+
+//    fWaterGc = .toFloat();
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -19,7 +19,7 @@ void ItemDm::init( QRectF rect )
     QSqlQuery query;
     QString strSql ;
 
-    //求最大最小高程 最大最小起点距
+    //求最大最小高程 最大最小起点距,从断面表中获取
     strSql = QString( "select max(ss), min(ss), max(qdj), min(qdj) from dm" );
     query.exec( strSql );
 
@@ -34,6 +34,8 @@ void ItemDm::init( QRectF rect )
     fGcMaxPos  = rect1.top( );
     fQdjMinPos  = rect1.left() ;
     fQdjMaxPos  = rect1.right() ;
+
+    fWaterPos = rect1.top( );
 
 //    qDebug( ) << rect1 ;
 //    qDebug( ) << "max min" << fGcMaxPos << fGcMinPos ;
@@ -55,6 +57,16 @@ void ItemDm::init( QRectF rect )
         poly << point ;
 //        qDebug( ) << "point " <<  point << fss << fGcMin  ;
     }
+
+    strSql = QString( "select content from sysconfig where id = 5" ) ;
+    query.exec( strSql );
+
+    QString strValue ;
+    while ( query.next() ){
+        strValue = query.value(0).toString();
+        fQdjOffset = strValue.toFloat( );
+    }
+
 }
 
 QRectF ItemDm::boundingRect() const
@@ -66,6 +78,7 @@ void ItemDm::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
 {
     painter->drawRect( rect1 );
     painter->drawPolyline( poly );
+    painter->drawLine( fQdjMinPos, fWaterPos, fQdjMaxPos, fWaterPos );
 }
 
 //设置水面高程，同时计算出水面的图形Y轴位置
@@ -73,6 +86,9 @@ void ItemDm::setWater( float fGcWater )
 {
     this->fGcWater = fGcWater ;
     fWaterPos = fGcMinPos - ( fGcWater - fGcMin) / (fGcMax - fGcMin) *rect1.height() ;
+    //update( boundingRect() );
+    update( rect1 );
+
 }
 
 //从控制柜过来的数据
@@ -82,11 +98,15 @@ QPointF ItemDm::getFishPos( float fQdj, float fBelowWater )
 {
     QPointF point ;
 
+    point.setX( fQdjMinPos + (fQdj+fQdjOffset - fQdjMin) / (fQdjMax - fQdjMin) *rect1.width() );
+
     float fGc ;  //当前铅鱼位置的高程
     fGc = fGcWater - fBelowWater ;
 
-    point.setX( fQdjMinPos + (fQdj - fQdjMin) / (fQdjMax - fQdjMin) *rect1.width() );
-    point.setY( fGcMinPos - ( fGc - fGcMin) / (fGcMax - fGcMin) *rect1.height() );
+    if( fBelowWater < 0 )
+        point.setY( fWaterPos );
+    else
+        point.setY( fGcMinPos - ( fGc - fGcMin) / (fGcMax - fGcMin) *rect1.height() );
 
     return point ;
 }
