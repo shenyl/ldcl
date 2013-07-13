@@ -65,10 +65,13 @@ private:
     QPushButton *buttonMakeQ ;
     QPushButton *buttonMakeReport ;
 
+    QList<float> listHdgc ;     //河底高程
     QList<float> listYySs ;     //应用水深
     QList<float> listQdj ;      //起点距
     QList<float> listLs ;       //垂线流速
 
+    QList<float> listAverSs ;   //测深平均水深
+    QList<float> listAverJj ;   //测深线间距
     QList<float> listSsArea ;   //水深局部面积
     QList<int>  listLsIndex ;   //流速线序号  最左边的流速线与应用水深线为 0
     QList<float> listLsPj ;     //局部平均流速  第一个与最后一个是要乘以岸边系数
@@ -93,6 +96,8 @@ private:
     QString sslr( float fValue, int iDigit );
     void tj(  );   //统计值
     void fillTj( );
+
+    void saveXLS( );
 
 };
 

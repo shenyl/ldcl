@@ -12,6 +12,12 @@
 #include <QFont>
 #include <QFrame>
 
+#include <QtGui/QApplication>
+#include <QFileDialog>
+#include <QObject>
+#include <QAxObject>
+#include <QMessageBox>
+
 QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
     : QDialog(parent, flags)
 {
@@ -257,9 +263,9 @@ void QDlgResultQ::getCsGc(  )
     QGetDm dm ;
     dm.readDm();
 
-    fLsParaLeft = dm.getSysconfig( 3 ).toFloat();
+    fLsParaLeft = dm.getSysconfig( 3 ).toFloat();       //流速系数
     fLsParaRight = dm.getSysconfig( 4 ).toFloat();
-    fQdjOffset = dm.getSysconfig( 5 ).toFloat();
+    fQdjOffset = dm.getSysconfig( 5 ).toFloat();        //起点距偏移
 
     int iLeft, iRight ;
     iLeft = dm.getQdjLeftIndex( fWaterGc );
@@ -288,6 +294,8 @@ void QDlgResultQ::getCsGc(  )
         pTableQ->setItem( i ,INDEX_CS_NO, new QTableWidgetItem(  QString("%1").arg( i+1 )  ));
         pTableQ->setItem( i ,INDEX_QDJ, new QTableWidgetItem( QString("%1").arg( fQdj ) ));
         pTableQ->setItem( i ,INDEX_GC, new QTableWidgetItem(  QString("%1").arg( fSs ) ));
+
+        listHdgc << fSs ;
 
         fYySs = fWaterGc - fSs ;  //河面高程减去河底高程
         if( fYySs<=0 ){
@@ -374,6 +382,8 @@ void QDlgResultQ::fillArea( )
         fAverSs = (listYySs.at(i) + listYySs.at(i+1)) / 2.0 ;
         fAverJj = ( listQdj.at(i+1) - listQdj.at(i)) ;
         fArea = fAverSs * fAverJj ;
+        listAverSs << fAverSs ;
+        listAverJj << fAverJj ;
         listSsArea << fArea ;
         pTableQ->setItem( i+1, INDEX_PJSS,new QTableWidgetItem( sslr(fAverSs, 2) ));
         pTableQ->setItem( i+1, INDEX_JJ,new QTableWidgetItem( sslr(fAverJj, 2) ));
@@ -440,8 +450,9 @@ void QDlgResultQ::computerLs( )
 //制作xls报表
 void QDlgResultQ::slotMakeReport( )
 {
-    QFunc  func ;
-    func.saveXLS( pTableQ );
+//    QFunc  func ;
+//    func.saveXLS( pTableQ );
+    saveXLS(  );
 }
 
 //全选择状态改变
@@ -603,4 +614,180 @@ void QDlgResultQ::fillTj( )
 
     pTableQ->setItem( iStartRow+2, 3, new QTableWidgetItem(  tr("最大水深") ));
     pTableQ->setItem( iStartRow+2, 4, new QTableWidgetItem(  sslr(fTj[6], 2) ));
+}
+
+//存成xls文件
+void QDlgResultQ::saveXLS(  )
+{
+    //设置两个名字
+    QString strPath = QCoreApplication::applicationDirPath(  );
+    QString strFormatFile = strPath + "/tableformat.xlsx" ;
+    strFormatFile = strFormatFile.replace("/", "\\");
+    qDebug( ) << strFormatFile ;
+
+    QDateTime dtToday = QDateTime::currentDateTime( );
+    QDate d = dtToday.date() ;
+    QTime t = dtToday.time() ;
+    QString strTime ;
+    strTime.sprintf( "%04d-%02d-%02d_%02d-%02d-%02d", d.year(),d.month(),d.day(),t.hour(),t.minute(),t.second() );
+
+    QString strDest = strPath + "/rep" + strTime + ".xlsx" ;
+    strDest = strDest.replace("/", "\\");
+    qDebug( ) << strDest ;
+
+    QAxObject excelObj("Excel.Application");
+    QAxObject* excelWorkBooks = excelObj.querySubObject("Workbooks");
+    QAxObject* excelWorkBook;
+    QAxObject* excelSheets;
+
+    if (excelWorkBooks) {
+        QFile file(strPath);
+        if (file.exists())
+            excelWorkBook = excelWorkBooks->querySubObject("Open(const QString&)", strFormatFile );
+        else
+            excelWorkBook = excelWorkBooks->querySubObject("Add()");
+
+        if (excelWorkBook)
+            excelSheets = excelWorkBook->querySubObject("Sheets");
+         else
+            QMessageBox::information(0, "", "QAxObject workbook fail!");
+    }
+    else
+        QMessageBox::information(0, "", "初始化Excel错误,可能没有安装Office组件!");
+
+
+    QAxObject* excelWorkSheet = excelSheets->querySubObject("Item(int index)", 1);
+
+    QAxObject* range;
+    QString strText;
+
+    int i ;
+    //测深线序号是一个从1开始的内容
+    for(i=0; i<listQdj.size(); i++){
+        range = excelWorkSheet->querySubObject("Range(\"StartCSNo\")" );
+        range = range->querySubObject("Offset( int, int )", i, 0 );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( i+1 ));
+        range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+    }
+
+    //测速线序号
+    for(i=0; i< listLsIndex.size(); i++){
+        range = excelWorkSheet->querySubObject("Range(\"StartCVNo\")" );
+        range = range->querySubObject("Offset( int, int )", listLsIndex.at(i), 0 );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( i+1 ));
+        range->setProperty("HorizontalAlignment", 2);    //靠左 2 中央 3  靠右4
+    }
+
+
+    //起点距列表
+    for(i=0; i<listQdj.size(); i++){
+        range = excelWorkSheet->querySubObject("Range(\"StartQdj\")" );
+        range = range->querySubObject("Offset( int, int )", i, 0 );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listQdj.at(i),1) ));
+        range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+    }
+
+    //河面高程
+    range = excelWorkSheet->querySubObject("Range(\"StartWaterGc\")" );
+    range = range->querySubObject("Offset( int, int )", 0, 0 );
+    range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(fWaterGc,2) ));
+    range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+
+    range = excelWorkSheet->querySubObject("Range(\"StartWaterGc\")" );
+    range = range->querySubObject("Offset( int, int )", listQdj.size()-1, 0 );
+    range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(fWaterGc,2) ));
+    range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+
+    //应用水深
+    for(i=0; i<listYySs.size(); i++){
+        range = excelWorkSheet->querySubObject("Range(\"StartYySs\")" );
+        range = range->querySubObject("Offset( int, int )", i, 0 );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listYySs.at(i),2) ));
+        range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+    }
+
+    //应用水深平均
+    for(i=0; i<listAverSs.size(); i++){
+        range = excelWorkSheet->querySubObject("Range(\"StartAverSs\")" );
+        range = range->querySubObject("Offset( int, int )", i+1, 0 );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listAverSs.at(i),2) ));
+        range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+    }
+
+    //测深线间距
+    for(i=0; i<listAverJj.size(); i++){
+        range = excelWorkSheet->querySubObject("Range(\"StartAverJj\")" );
+        range = range->querySubObject("Offset( int, int )", i+1, 0 );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listAverJj.at(i),2) ));
+        range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+    }
+
+    //测深线间面积
+    for(i=0; i<listSsArea.size(); i++){
+        range = excelWorkSheet->querySubObject("Range(\"StartSsArea\")" );
+        range = range->querySubObject("Offset( int, int )", i+1, 0 );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listSsArea.at(i),2) ));
+        range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+    }
+
+    //测速线流速
+    for(i=0; i<listLsIndex.size(); i++){
+        range = excelWorkSheet->querySubObject("Range(\"StartLs\")" );
+        range = range->querySubObject("Offset( int, int )", listLsIndex.at(i), 0 );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listLs.at(i),2) ));
+        range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+    }
+
+    //部分流速
+    for(i=0; i<listLsIndex.size(); i++){
+        range = excelWorkSheet->querySubObject("Range(\"StartLsPj\")" );
+        range = range->querySubObject("Offset( int, int )", listLsIndex.at(i), 0 );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listLsPj.at(i),2) ));
+        range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+    }
+    range = excelWorkSheet->querySubObject("Range(\"StartLsPj\")" );
+    range = range->querySubObject("Offset( int, int )", listLsIndex.last()+1, 0 );
+    range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listLsPj.last(),2) ));
+    range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+
+    //部分面积
+    for(i=0; i<listLsIndex.size(); i++){
+        range = excelWorkSheet->querySubObject("Range(\"StartLsArea\")" );
+        range = range->querySubObject("Offset( int, int )", listLsIndex.at(i), 0 );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listLsArea.at(i),2) ));
+        range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+    }
+    range = excelWorkSheet->querySubObject("Range(\"StartLsArea\")" );
+    range = range->querySubObject("Offset( int, int )", listLsIndex.last()+1, 0 );
+    range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listLsArea.last(),2) ));
+    range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+
+    //部分流量
+    for(i=0; i<listLsIndex.size(); i++){
+        range = excelWorkSheet->querySubObject("Range(\"StartLsQ\")" );
+        range = range->querySubObject("Offset( int, int )", listLsIndex.at(i), 0 );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listLsQ.at(i),2) ));
+        range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+    }
+    range = excelWorkSheet->querySubObject("Range(\"StartLsQ\")" );
+    range = range->querySubObject("Offset( int, int )", listLsIndex.last()+1, 0 );
+    range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr(listLsQ.last(),2) ));
+    range->setProperty("HorizontalAlignment", 2);     //靠左 2 中央 3  靠右4
+
+    //填充统计数据
+
+    char chAddr[30] ;
+    for(i=0; i<7; i++){
+        sprintf(chAddr, "Range(\"AddrTj%d\")", i );
+        range = excelWorkSheet->querySubObject( chAddr );
+        range->dynamicCall("SetValue(const QVariant&)", QVariant( sslr( fTj[i] ,2) ));
+        range->setProperty("HorizontalAlignment", 4);     //靠左 2 中央 3  靠右4
+    }
+
+    //保存关闭excel表格
+    excelObj.setProperty("DisplayAlerts", 0);
+    excelWorkBook->dynamicCall("SaveAs(const QString&)", strDest );
+    excelWorkBook->dynamicCall("Close(Boolean)", false);
+
+    excelObj.dynamicCall("Quit()");
 }
