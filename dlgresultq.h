@@ -24,14 +24,14 @@
 #define   INDEX_YYSS        5       //应用水深
 
 #define   INDEX_PJSS        6       //平均水深
-#define   INDEX_JJ          7       //间距
-#define   INDEX_QXMJ        8       //垂线面积
-#define   INDEX_LSAREA      9       //流速面积
+#define   INDEX_JJ          7       //测深线间距
+#define   INDEX_QXMJ        8       //测深垂线面积
+#define   INDEX_LSAREA      9       //部分面积
 
-#define   INDEX_LS          10       //流速
+#define   INDEX_LS          10       //测速线流速
 
 #define   INDEX_LSPJ        11      //流速平均
-#define   INDEX_LSQ         12      //局部流量
+#define   INDEX_LSQ         12      //部分流量
 
 //流量计算结果类
 class QDlgResultQ : public QDialog
@@ -65,8 +65,8 @@ private:
     QPushButton *buttonMakeQ ;
     QPushButton *buttonMakeReport ;
 
-    QList<float> listYySs ;
-    QList<float> listQdj ;
+    QList<float> listYySs ;     //应用水深
+    QList<float> listQdj ;      //起点距
     QList<float> listLs ;       //垂线流速
 
     QList<float> listSsArea ;   //水深局部面积
@@ -75,10 +75,13 @@ private:
     QList<float> listLsArea ;     //流速局部面积
     QList<float> listLsQ ;     //流速流量
 
+    float fQdjLeft, fQdjRight ;     //水面左右对应的起点距
+
     float fWaterGc ;
     float fLsParaLeft ;
     float fLsParaRight ;
     float fQdjOffset ;
+    float fTj[20]   ;  //统计值
 
 private:
     void getCsGc() ;    //获取测深高程
@@ -87,6 +90,9 @@ private:
     void fillArea( );
     void computerLs( );
     void fillTable( );
+    QString sslr( float fValue, int iDigit );
+    void tj(  );   //统计值
+    void fillTj( );
 
 };
 

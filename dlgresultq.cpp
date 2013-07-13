@@ -127,6 +127,10 @@ QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
 
     setTitleQ(  );
 
+//    sslr( 12.62, 1 );
+//    sslr( 12.65, 1 );
+//    sslr( 12.66, 1 );
+//    sslr( 12.666, 2 );
 }
 
 QDlgResultQ::~QDlgResultQ()
@@ -220,6 +224,9 @@ void QDlgResultQ::slotQueryCl( )
 //生成流量表
 void QDlgResultQ::slotMakeQ( )
 {
+    pTableQ->clear();
+    setTitleQ( );
+
     //保存结束时的水面高程
     QString strSQL ;
 
@@ -234,6 +241,8 @@ void QDlgResultQ::slotMakeQ( )
     fillArea( );
     computerLs();
     fillTable();
+    tj( );
+    fillTj( );
 }
 
 //获取测深高程
@@ -256,7 +265,6 @@ void QDlgResultQ::getCsGc(  )
     iLeft = dm.getQdjLeftIndex( fWaterGc );
     iRight = dm.getQdjRightIndex( fWaterGc );
 
-    float fQdjLeft, fQdjRight ;
     fQdjLeft = dm.getQdjLeft( fWaterGc ) ;
     fQdjRight = dm.getQdjRight( fWaterGc ) ;
 
@@ -278,8 +286,8 @@ void QDlgResultQ::getCsGc(  )
         fSs = query.value(1).toFloat();
 
         pTableQ->setItem( i ,INDEX_CS_NO, new QTableWidgetItem(  QString("%1").arg( i+1 )  ));
-        pTableQ->setItem( i ,INDEX_QDJ, new QTableWidgetItem(  QString("%1").arg(fQdj)  ));
-        pTableQ->setItem( i ,INDEX_GC, new QTableWidgetItem(  QString("%1").arg(fSs)  ));
+        pTableQ->setItem( i ,INDEX_QDJ, new QTableWidgetItem( QString("%1").arg( fQdj ) ));
+        pTableQ->setItem( i ,INDEX_GC, new QTableWidgetItem(  QString("%1").arg( fSs ) ));
 
         fYySs = fWaterGc - fSs ;  //河面高程减去河底高程
         if( fYySs<=0 ){
@@ -294,7 +302,7 @@ void QDlgResultQ::getCsGc(  )
             listQdj << fQdj ;
             listYySs << fYySs ;
         }
-        pTableQ->setItem( i ,INDEX_YYSS, new QTableWidgetItem(  QString("%1").arg(fYySs)  ));
+        pTableQ->setItem( i ,INDEX_YYSS, new QTableWidgetItem(  sslr(fYySs, 2) ));
         i ++ ;
     }
     qDebug() << "listQdj" << listQdj.size()  << listQdj;
@@ -353,10 +361,9 @@ void QDlgResultQ::fillVNo( QString strQdj, int iNo, QString strLs )
         if( pItem == NULL ) continue ;
         if( pItem->text() == strDest ){
             pTableQ->setItem( i, INDEX_CV_NO, new QTableWidgetItem( QString("%1").arg(iNo) ) );
-            pTableQ->setItem( i, INDEX_LS, new QTableWidgetItem( strLs ) );
+            pTableQ->setItem( i, INDEX_LS, new QTableWidgetItem( sslr(strLs.toFloat(), 2) ) );
         }
     }
-
 }
 
 //填充面积
@@ -368,9 +375,9 @@ void QDlgResultQ::fillArea( )
         fAverJj = ( listQdj.at(i+1) - listQdj.at(i)) ;
         fArea = fAverSs * fAverJj ;
         listSsArea << fArea ;
-        pTableQ->setItem( i+1, INDEX_PJSS,new QTableWidgetItem( QString("%1").arg(fAverSs) ));
-        pTableQ->setItem( i+1, INDEX_JJ,new QTableWidgetItem( QString("%1").arg(fAverJj) ));
-        pTableQ->setItem( i+1, INDEX_QXMJ,new QTableWidgetItem( QString("%1").arg(fArea) ));
+        pTableQ->setItem( i+1, INDEX_PJSS,new QTableWidgetItem( sslr(fAverSs, 2) ));
+        pTableQ->setItem( i+1, INDEX_JJ,new QTableWidgetItem( sslr(fAverJj, 2) ));
+        pTableQ->setItem( i+1, INDEX_QXMJ,new QTableWidgetItem( sslr(fArea, 2) ));
     }
     qDebug() << "listSsArea"  << listSsArea.size() << listSsArea;
 }
@@ -472,6 +479,16 @@ void QDlgResultQ::setTitleQ(  )
     pTableQ->setColumnWidth(0, 60);
     pTableQ->setColumnWidth(1, 60);
     pTableQ->setColumnWidth(2, 90);
+
+    listYySs.clear();
+    listQdj.clear() ;
+    listLs.clear() ;
+
+    listSsArea.clear() ;
+    listLsIndex.clear() ;
+    listLsPj.clear() ;
+    listLsArea.clear() ;
+    listLsQ.clear() ;
 }
 
 //填入表格中
@@ -483,16 +500,107 @@ void  QDlgResultQ::fillTable( )
 
     for(i=0; i<listLsIndex.size(); i++){
         pTableQ->setItem( listLsIndex.at(i), INDEX_LSAREA,  \
-                          new QTableWidgetItem( QString("%1").arg( listLsArea.at(i) ) ));
+                          new QTableWidgetItem( sslr(listLsArea.at(i), 2 ) ));
         pTableQ->setItem( listLsIndex.at(i), INDEX_LSPJ,  \
-                          new QTableWidgetItem( QString("%1").arg( listLsPj.at(i) ) ));
+                          new QTableWidgetItem( sslr(listLsPj.at(i), 2 ) ));
         pTableQ->setItem( listLsIndex.at(i), INDEX_LSQ,  \
-                          new QTableWidgetItem( QString("%1").arg( listLsQ.at(i) ) ));
+                          new QTableWidgetItem( sslr(listLsQ.at(i), 2 ) ));
     }
     pTableQ->setItem( listLsIndex.last()+1, INDEX_LSAREA,  \
-                      new QTableWidgetItem( QString("%1").arg( listLsArea.last() ) ));
+                      new QTableWidgetItem( sslr(listLsArea.last( ), 2 ) ) );
     pTableQ->setItem( listLsIndex.last()+1, INDEX_LSPJ,  \
-                      new QTableWidgetItem( QString("%1").arg( listLsPj.last() ) ));
+                      new QTableWidgetItem( sslr(listLsPj.last( ), 2 ) ) );
     pTableQ->setItem( listLsIndex.last()+1, INDEX_LSQ,  \
-                      new QTableWidgetItem( QString("%1").arg( listLsQ.last() ) ));
+                      new QTableWidgetItem( sslr(listLsQ.last( ), 2 ) ) );
+}
+
+//四舍六入
+// fValue 转换后的值
+// iDigit 转换后小数点后的数目
+QString QDlgResultQ::sslr( float fValue, int iDigit )
+{
+    float f1 = 1 ;
+    int i;
+    for(i=0; i<iDigit; i++){
+        f1 *= 10 ;
+    }
+
+    float f2 ;
+    f2 = fValue * f1 ;
+    f2 += (float)0.4 ;         //四舍六入用0.4加上去
+
+    int iValue = (int) f2 ;
+
+    QString strValue;
+    char chFormat[30];
+    sprintf( chFormat, "%%.%df", iDigit );
+    strValue.sprintf( chFormat , iValue / f1 );
+//    qDebug( ) << "sslr" << fValue  << strValue ;
+    return strValue ;
+}
+
+//统计值
+void QDlgResultQ::tj(  )
+{
+    float fSum ;
+    int i;
+
+    fSum = 0;
+    for(i=0; i<listLsQ.size(); i++){
+        fSum += listLsQ.at(i) ;
+    }
+    fTj[0] = fSum ;             //断面流量
+
+    fSum = 0;
+    for(i=0; i<listLsArea.size(); i++){
+        fSum += listLsArea.at(i) ;
+    }
+    fTj[1] = fSum ;              // 断面面积
+
+    fSum = 0;
+    for(i=0; i<listLsPj.size(); i++){
+        fSum += listLsPj.at(i) ;
+    }
+    fTj[2] = fSum / listLsPj.size();   // 流速平均
+
+    float fMax = 0 ;
+    for(i=0; i<listLs.size(); i++){
+        if(  fMax < listLs.at(i) ) fMax = listLs.at(i);
+    }
+    fTj[3] = fMax ;                     //最大测点流速
+    fTj[4] = fQdjRight - fQdjLeft ;     //水面宽
+
+    fSum = 0;
+    for(i=0; i<listYySs.size(); i++){
+        fSum += listYySs.at(i) ;
+    }
+    fTj[5] = fSum / listYySs.size();   //平均水深
+
+    fMax = 0 ;
+    for(i=0; i<listYySs.size(); i++){
+        if(  fMax < listYySs.at(i) ) fMax = listYySs.at(i);
+    }
+    fTj[6] = fMax ;     //最大水深
+}
+
+void QDlgResultQ::fillTj( )
+{
+    int iStartRow = listYySs.size() + 3 ;
+
+    pTableQ->setItem( iStartRow, 3, new QTableWidgetItem(  tr("断面流量") ));
+    pTableQ->setItem( iStartRow, 4, new QTableWidgetItem(  sslr(fTj[0], 2) ));
+    pTableQ->setItem( iStartRow, 5, new QTableWidgetItem(  tr("断面面积") ));
+    pTableQ->setItem( iStartRow, 6, new QTableWidgetItem(  sslr(fTj[1], 2) ));
+    pTableQ->setItem( iStartRow, 7, new QTableWidgetItem(  tr("流速平均") ));
+    pTableQ->setItem( iStartRow, 8, new QTableWidgetItem(  sslr(fTj[2], 2) ));
+
+    pTableQ->setItem( iStartRow+1, 3, new QTableWidgetItem(  tr("最大测点流速") ));
+    pTableQ->setItem( iStartRow+1, 4, new QTableWidgetItem(  sslr(fTj[3], 2) ));
+    pTableQ->setItem( iStartRow+1, 5, new QTableWidgetItem(  tr("水面宽") ));
+    pTableQ->setItem( iStartRow+1, 6, new QTableWidgetItem(  sslr(fTj[4], 2) ));
+    pTableQ->setItem( iStartRow+1, 7, new QTableWidgetItem(  tr("平均水深") ));
+    pTableQ->setItem( iStartRow+1, 8, new QTableWidgetItem(  sslr(fTj[5], 2) ));
+
+    pTableQ->setItem( iStartRow+2, 3, new QTableWidgetItem(  tr("最大水深") ));
+    pTableQ->setItem( iStartRow+2, 4, new QTableWidgetItem(  sslr(fTj[6], 2) ));
 }
