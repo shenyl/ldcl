@@ -53,7 +53,6 @@ float QGetDm::getQdjLeft( float fWaterSurface )
     iCount = listDm.count( );
     int iIndex = -1 ;
 
-
     for(i=0; i<iCount; i++){
         if( listDm.at(i).fSs <= fWaterSurface ) {
             iIndex = i;
@@ -131,4 +130,40 @@ void  QGetDm::readDm( )
         listDm << dm ;
     }
 
+}
+
+int QGetDm::getQdjLeftIndex( float fWaterSurface )
+{
+    int i, iCount ;
+    iCount = listDm.count( );
+    int iIndex = -1 ;
+
+    for(i=0; i<iCount; i++){
+        if( listDm.at(i).fSs <= fWaterSurface ) {
+            iIndex = i;
+            break ;
+        }
+    }
+    if( iIndex == -1 )  return -1;
+
+    return listDm.at(iIndex - 1).iId ;
+}
+
+int QGetDm::getQdjRightIndex( float fWaterSurface )
+{
+    int i, iCount ;
+    iCount = listDm.count( );
+    int iIndex = -1 ;
+
+
+    for(i=iCount-1; i>=0 ; i--){
+        if( listDm.at(i).fSs <= fWaterSurface ) {
+            iIndex = i;
+            break ;
+        }
+    }
+
+    if( iIndex == -1 )  return -1;
+
+    return listDm.at(iIndex + 1).iId ;
 }

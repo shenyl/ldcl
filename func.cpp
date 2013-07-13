@@ -42,9 +42,9 @@ void QFunc::connectDatabase( int iAppid )
 
 //QTableWidget * pTable 表控件
 //QStringList listLen  表各个字段的宽度
-void QFunc::saveXLS( QTableWidget * pTable, QStringList listLen )
+void QFunc::saveXLS( QTableWidget * pTable )
 {
-    QFileDialog saveFileDlg( 0, tr("保存记录文件"), "./save", tr("Excel files(*.xlsx)"));
+    QFileDialog saveFileDlg( 0, tr("保存记录文件"), "./", tr("Excel files(*.xlsx)"));
     saveFileDlg.setAcceptMode(QFileDialog::AcceptSave);
     saveFileDlg.setDefaultSuffix(QString("xlsx"));
 //    saveFileDlg.selectFile(strName);  //预置一个文件名字
@@ -99,7 +99,7 @@ void QFunc::saveXLS( QTableWidget * pTable, QStringList listLen )
         range = excelWorkSheet->querySubObject("Cells(int, int)", 1, i+1);
         range->dynamicCall("SetValue(const QVariant&)", QVariant(strText));
         range->setProperty("HorizontalAlignment", 3);
-        range->setProperty("ColumnWidth", listLen.at(i).toInt() );
+        range->setProperty("ColumnWidth", pTable->columnWidth( i )/7 );
 
         interior = range->querySubObject("interior");
         interior->setProperty("ColorIndex", QVariant(8));
@@ -113,6 +113,7 @@ void QFunc::saveXLS( QTableWidget * pTable, QStringList listLen )
     for (int i=0; i<pTable->rowCount(); ++i) {
         for (int j=0; j < pTable->columnCount(); ++j) {
             pItem = pTable->item(i, j);
+            if( pItem == NULL ) continue ;
             strText = pItem->text();
             range = excelWorkSheet->querySubObject("Cells(int, int)", i+2, j+1);
             range->dynamicCall("SetValue(const QVariant&)", QVariant(strText));

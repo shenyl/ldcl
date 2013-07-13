@@ -18,7 +18,7 @@ public:
 
     void connectDatabase( int iAppid );
 
-    void saveXLS( QTableWidget * pTable, QStringList listLen );
+    void saveXLS( QTableWidget * pTable );
 
     void saveXLS( QTableView * pTable, QSqlQueryModel * tabModel  );
 

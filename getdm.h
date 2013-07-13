@@ -25,6 +25,9 @@ public:
     float getQdjLeft( float fWaterSurface );
     float getQdjRight( float fWaterSurface );
 
+    int getQdjLeftIndex( float fWaterSurface );
+    int getQdjRightIndex( float fWaterSurface );
+
     QString getSysconfig( int iId );
 
     void readDm( );
