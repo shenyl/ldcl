@@ -58,8 +58,8 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
              this, SLOT( slotGetMsg( QString ) ));
     connect( &threadserial, SIGNAL( sigHalf(  ) ), \
              this, SLOT( slotGetHalfContinue( ) ) );
-    connect( &threadserial, SIGNAL( sigAuto() ), \
-             this, SLOT( slotGetAuto( ) ) );
+    connect( &threadserial, SIGNAL( sigAuto( QString ) ), \
+             this, SLOT( slotGetAuto( QString ) ) );
 
     radioManual  = new QRadioButton( tr("手动测量") );
     radioManual->setChecked( true );
@@ -216,8 +216,8 @@ void QWidgetCl::slotCmdBack( )
 
 void QWidgetCl::slotCmdStop( )
 {
+    slotClStop(  );
     threadserial.sendCmdMove( CMD_STOP );
-    threadserial.setStateNotStart( );
 }
 
 //开始测量
@@ -337,11 +337,14 @@ void QWidgetCl::slotClStart(  )
     if( radioFullAuto->isChecked() ) iAutoMode = MODE_AUTO ;
     if( radioHalfAuto->isChecked() ) iAutoMode = MODE_HALF ;
 
-    if( iAutoMode != MODE_MANU )
+    if( iAutoMode != MODE_MANU ){
         lblAutoState->setText(tr("自动测量开始"));
+        enableButton(false);
+    }
     else{
         threadserial.startAutoMode( iAutoMode );    //设手动模式
         lblAutoState->setText(tr("手动测量 测量开始"));
+        enableButton(true);
         return ;
     }
 
@@ -390,6 +393,8 @@ void QWidgetCl::slotClStop(  )
     buttonClPause->setEnabled(false);
 
     radioManual->setChecked( true );
+
+    enableButton(true);
 }
 
 void QWidgetCl::slotClPause(  )
@@ -451,7 +456,7 @@ void QWidgetCl::slotGetHalfContinue( )
 }
 
 //自动测量结束槽
-void QWidgetCl::slotGetAuto( )
+void QWidgetCl::slotGetAuto( QString strMsg   )
 {
     buttonClStart->setEnabled( true );
     buttonClPause->setEnabled( false );
@@ -459,5 +464,27 @@ void QWidgetCl::slotGetAuto( )
 
     radioManual->setChecked( true );
 
-    pPlainTextEdit->appendHtml( tr("<font color=\"#ff0000\">自动测量结束</font>") );
+    pPlainTextEdit->appendHtml( tr("<font color=\"#ff0000\">") + strMsg + tr("</font>") );
+}
+
+//使能或不使能按钮
+void QWidgetCl::enableButton( bool bEnable )
+{
+    buttonUp->setEnabled( bEnable );
+    buttonDown->setEnabled( bEnable );
+    buttonHead->setEnabled( bEnable );
+    buttonBack->setEnabled( bEnable );
+
+    if( bEnable ){
+        buttonUp->setText("");
+        buttonDown->setText("");
+        buttonHead->setText("");
+        buttonBack->setText("");
+    }
+    else{
+        buttonUp->setText("X");
+        buttonDown->setText("X");
+        buttonHead->setText("X");
+        buttonBack->setText("X");
+    }
 }

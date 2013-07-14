@@ -129,7 +129,14 @@ void QSerialThread::runFullAuto( )
 //        qDebug() << tr("水深") << currentCx.fCdSs[iCxClid] ;
 
         QString strSs = QString("%1").arg(currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid]);
-        setConfigSs( strSs );    //置水深
+        bool bRes ;
+        bRes = setConfigSs( strSs );    //置水深
+        if( !bRes )
+        {
+            stopAuto( );
+            emit sigAuto( tr("自动测量异常结束！因为水深设置未成功未能正常执行") );
+            return ;
+        }
         sendCmdMove( CMD_DOWN );    //铅鱼下送
     }
         break;
@@ -155,7 +162,14 @@ void QSerialThread::runFullAuto( )
         else{
             currentCx.fCdSs[iCxClid] = currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid];
             QString strSs = QString("%1").arg(currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid]);
-            setConfigSs( strSs );    //置水深
+            bool bRes ;
+            bRes = setConfigSs( strSs );    //置水深
+            if( !bRes )
+            {
+                stopAuto( );
+                emit sigAuto( tr("自动测量异常结束！因为水深设置未成功未能正常执行") );
+                return ;
+            }
             sendCmdMove( CMD_DOWN );    //铅鱼下送
         }
         break;
@@ -247,7 +261,7 @@ void QSerialThread::moveFish(  )
             iState = STATE_NOTSTART ;
             iAutoMode = MODE_MANU ;
             bSecondHeightIng = false ;      //
-            emit sigAuto( );
+            emit sigAuto( tr("自动测量结束！") );
         }
         else{
             bSecondHeightIng = true ;      //
@@ -260,10 +274,16 @@ void QSerialThread::moveFish(  )
         currentCx = listCx.front();
         listCx.pop_front();
     }
-    setConfigQdj( QString("%1").arg( currentCx.fQdj ) );
+    bool bRes ;
+    bRes = setConfigQdj( QString("%1").arg( currentCx.fQdj ) );
+    if( !bRes )
+    {
+        stopAuto( );
+        emit sigAuto( tr("自动测量异常结束！因为起点距设置未成功未能正常执行") );
+        return ;
+    }
 
     //根据当前位置判断是出车还是回车，先查询位置
-    bool bRes ;
     bRes = queryMove( );   //查询铅鱼位置
     if( !bRes )
         bRes = queryMove( );   //查询铅鱼位置
@@ -311,6 +331,8 @@ bool QSerialThread::queryMove(  )
     msleep(1000);
     readComm( );
 
+    if( iLenInput < 5 ) return false ;
+
     bool bResult1, bResult2 ;
     bResult1 = ( memcmp( chBufInput + iLenInput - 3, ay , 2 ) == 0 );
     bResult2 = ( memcmp( chBufInput + iLenInput - 3, py , 2 ) == 0 );
@@ -318,19 +340,6 @@ bool QSerialThread::queryMove(  )
     if( !(bResult2 || bResult1) )  return false ;
 
 //    qDebug( ) << "result" << bResult1 << bResult2 ;
-
-    bool bRes = false ;
-    if( bResult1 ) { iQueryMovingCount++; msleep(500); bRes = false ; }
-
-    if( bResult2 ) {
-        if( iState == STATE_HOR && iQueryMovingCount > 0 )
-            iState = STATE_HOR_OVER ;
-        if( iState == STATE_VER && iQueryMovingCount > 0 )
-            iState = STATE_VER_OVER ;
-        if( iState == STATE_VER_UP && iQueryMovingCount > 0 )
-            iState = STATE_VER_UP_OVER ;
-        bRes = true ;
-    }
 
     *( chBufInput + iLenInput - 3 ) = 0 ;
     qDebug( ) << (char*)chBufInput  ;
@@ -346,6 +355,26 @@ bool QSerialThread::queryMove(  )
     //    for(int i=0; i<7; i++ ){
     //        qDebug( ) << i<< *(fPos+i) ;
     //    }
+
+    bool bRes = false ;
+    if( bResult1 ) { iQueryMovingCount++; msleep(500); bRes = false ; }
+
+    if( bResult2 ) {
+        if( iState == STATE_HOR && iQueryMovingCount > 0 ){
+            if( ( iAutoMode == MODE_AUTO || iAutoMode == MODE_HALF ) && qAbs( *(fPos+3) - fQdj ) > 0.2 )
+            {
+                stopAuto( );
+                emit sigAuto( tr("自动测量异常结束！因为起点距不对未能正常执行") );
+                return false ;
+            }
+            iState = STATE_HOR_OVER ;
+        }
+        if( iState == STATE_VER && iQueryMovingCount > 0 )
+            iState = STATE_VER_OVER ;
+        if( iState == STATE_VER_UP && iQueryMovingCount > 0 )
+            iState = STATE_VER_UP_OVER ;
+        bRes = true ;
+    }
 
     emit sigFishPos( fPos, 7, bRes );
     if(bResult2)
@@ -383,6 +412,7 @@ bool QSerialThread::setConfigQdj( QString strValue )
     bRes = strResult.contains( QString("%1").arg(chValue)  );
 
     if( bRes ) return true ;
+    msleep(1000);
 
     //第二次设置起点距参数
     serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
@@ -424,6 +454,8 @@ bool QSerialThread::setConfigSs( QString strValue )
     bRes = strResult.contains( QString("%1").arg(chValue)  );
 
     if( bRes ) return true ;
+
+    msleep(1000);
 
     //第二次设置水深参数
     serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
@@ -509,6 +541,8 @@ bool QSerialThread::queryCl( )
     writeComm( chCL[2][1] );
     msleep(1500);
     readComm( );
+
+    if( iLenInput < 5 ) return false ;
 
     bool bResult1, bResult2  ;
     bResult1 = ( memcmp( chBufInput + iLenInput - 3, yw , 2 ) == 0 );
@@ -628,6 +662,8 @@ void QSerialThread::startAutoMode( int iMode )
     iAutoMode = iMode ;
     iAutoState = AUTO_STATE_START ;
     bHalfContinue = true ;
+    iState = STATE_NOTSTART ;
+    bSecondHeightIng = false ;      //
 }
 
 

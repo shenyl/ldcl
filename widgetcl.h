@@ -82,11 +82,12 @@ private slots:
     void slotClearLog(  );
     void slotSaveLog(  );
     void slotGetHalfContinue( );
-    void slotGetAuto( );
+    void slotGetAuto( QString strMsg );
 
 private:
     void setButton( QPushButton * pButton, QString strStyle );
     QString getSysconfig( int iId );
+    void enableButton( bool bEnable );
 
 protected:
     void closeEvent ( QCloseEvent * event );

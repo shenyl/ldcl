@@ -115,7 +115,7 @@ signals:
     void sigClRes( float * fCl, int iNums, bool bRes );       // false测量过程中   true测量有结果
     void sigSendMsg( QString );
     void sigHalf( );    //半自动阶段完成的信号
-    void sigAuto( ) ;   //自动测量完成！
+    void sigAuto( QString strMsg ) ;   //自动测量完成！
 
 };
 
