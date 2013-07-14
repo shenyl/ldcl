@@ -17,6 +17,8 @@
 #include <QObject>
 #include <QAxObject>
 #include <QMessageBox>
+#include <QDesktopServices>
+#include <QUrl>
 
 QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
     : QDialog(parent, flags)
@@ -68,7 +70,7 @@ QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
     edtGcStart = new QLineEdit  ;
     edtGcEnd = new QLineEdit ;
 
-    buttonMakeQ =  new QPushButton(tr("制作流量表")) ;
+    buttonMakeQ =  new QPushButton(tr("计算并制作流量表")) ;
     connect(buttonMakeQ, SIGNAL(clicked()), this, SLOT(slotMakeQ()));
 
     buttonMakeReport =  new QPushButton(tr("生成报表")) ;
@@ -81,8 +83,9 @@ QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
     layoutGc->addWidget( edtGcEnd );
 
     QHBoxLayout *layoutMake = new QHBoxLayout;
+    layoutMake->addStretch( );
     layoutMake->addWidget( buttonMakeQ );
-    layoutMake->addWidget( buttonMakeReport );
+//    layoutMake->addWidget( buttonMakeReport );
 
     QVBoxLayout *layoutRight = new QVBoxLayout;
     layoutRight->addLayout( layoutGc );
@@ -132,6 +135,7 @@ QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
     pTableQ->verticalHeader()->setVisible(false);   //隐藏列表头
 
     setTitleQ(  );
+    slotQueryCl( );
 
 //    sslr( 12.62, 1 );
 //    sslr( 12.65, 1 );
@@ -249,6 +253,7 @@ void QDlgResultQ::slotMakeQ( )
     fillTable();
     tj( );
     fillTj( );
+    saveXLS( );
 }
 
 //获取测深高程
@@ -655,7 +660,6 @@ void QDlgResultQ::saveXLS(  )
     else
         QMessageBox::information(0, "", "初始化Excel错误,可能没有安装Office组件!");
 
-
     QAxObject* excelWorkSheet = excelSheets->querySubObject("Item(int index)", 1);
 
     QAxObject* range;
@@ -790,4 +794,18 @@ void QDlgResultQ::saveXLS(  )
     excelWorkBook->dynamicCall("Close(Boolean)", false);
 
     excelObj.dynamicCall("Quit()");
+
+    //询问并打开制作好的报表
+//    QMessageBox::StandardButton  buttonResult ;
+    int iRes ;
+    iRes = QMessageBox::question( this, tr("提问"), tr("是否打开制作好的报表?"), \
+                                          QMessageBox::No, QMessageBox::Yes );
+
+    if( iRes == QMessageBox::Yes ){
+        strDest.replace( "\\" , "/" );
+        QDesktopServices  ds ;
+        ds ;        //去掉会有一行报警
+        ds.openUrl( QUrl( strDest ));
+    }
+    return ;
 }
