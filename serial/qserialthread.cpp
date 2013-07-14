@@ -263,7 +263,12 @@ void QSerialThread::moveFish(  )
     setConfigQdj( QString("%1").arg( currentCx.fQdj ) );
 
     //根据当前位置判断是出车还是回车，先查询位置
-    queryMove( );   //查询铅鱼位置
+    bool bRes ;
+    bRes = queryMove( );   //查询铅鱼位置
+    if( !bRes )
+        bRes = queryMove( );   //查询铅鱼位置
+    if( !bRes )  return ;
+
     qDebug( ) << "move fish pos justify" << *(fPos + 3) << currentCx.fQdj  ;
     if( *(fPos + 3) < currentCx.fQdj )
         sendCmdMove( CMD_HEAD );
@@ -294,7 +299,7 @@ static char py[] = "PY" ;   //行走结束
 //00 0 00 +010.0  -01.07   010.0  000.0PY
 
 //bool bVerifyTime  是否验证时间的标志
-void QSerialThread::queryMove(  )
+bool QSerialThread::queryMove(  )
 {
     writeComm( 'j' );
     msleep(500);
@@ -309,6 +314,8 @@ void QSerialThread::queryMove(  )
     bool bResult1, bResult2 ;
     bResult1 = ( memcmp( chBufInput + iLenInput - 3, ay , 2 ) == 0 );
     bResult2 = ( memcmp( chBufInput + iLenInput - 3, py , 2 ) == 0 );
+
+    if( !(bResult2 || bResult1) )  return false ;
 
 //    qDebug( ) << "result" << bResult1 << bResult2 ;
 
@@ -343,6 +350,8 @@ void QSerialThread::queryMove(  )
     emit sigFishPos( fPos, 7, bRes );
     if(bResult2)
         emit sigSendMsg(tr("铅鱼到位停止!") );
+
+    return true ;
 
 }
 
@@ -491,7 +500,7 @@ static char zw[] = "ZW" ;   //测量结束
 // aK0.2500 C0.0111 T000.4 N0000 V0.000YW
 // aT000.8 N0000YW
 // aK0.2500 C0.0111 T011.4 N0100 V2.204ZW
-void QSerialThread::queryCl( )
+bool QSerialThread::queryCl( )
 {
     writeComm( chCL[2][0] );
     msleep(500);
@@ -501,9 +510,10 @@ void QSerialThread::queryCl( )
     msleep(1500);
     readComm( );
 
-    bool bResult1, bResult2 ;
+    bool bResult1, bResult2  ;
     bResult1 = ( memcmp( chBufInput + iLenInput - 3, yw , 2 ) == 0 );
     bResult2 = ( memcmp( chBufInput + iLenInput - 3, zw , 2 ) == 0 );
+    if( !(bResult2 || bResult1) )  return false ;
     qDebug( ) << (char*)chBufInput  ;
 //    qDebug( ) << "result" << bResult1 << bResult2 ;
 
@@ -540,6 +550,8 @@ void QSerialThread::queryCl( )
         fCl[3] = f[1];
         qDebug( ) << "result 2_" << f[0]  << f[1] ;
     }
+
+    if( iRes != 4 && iRes != 10 )  return  false ;
 
 //    for(int i=0; i<5; i++ ){
 //        qDebug( ) << i<< *(fCl+i) ;
@@ -607,6 +619,7 @@ void QSerialThread::queryCl( )
             currentCx.fN[iCxClid] = *( fCl+3 ) ;
         }
     }
+    return true ;
 }
 
 //开启自模式

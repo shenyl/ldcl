@@ -54,8 +54,8 @@ public:
     bool setConfigSs( QString strValue );
     void sendCmdMove( int iCmd );
     void sendCmdCl( );
-    void queryMove( );
-    void queryCl( );
+    bool queryMove( );
+    bool queryCl( );
 
     void startAutoMode( int iMode );
     void stopAuto( );
