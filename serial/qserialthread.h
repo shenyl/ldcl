@@ -96,7 +96,7 @@ private:
     int iLenOutput ;
 
     float fQdj, fSs ;   //手动时设定的起点距， 水深
-    float fPos[7]  ;    //从通讯协议中取来的位置  4 当前起点距 5 当前水深 6 预置起点距 7 预置水深
+    float fPos[7]  ;    //从通讯协议中取来的位置  3 当前起点距 5 当前水深 6 预置起点距 7 预置水深
     float fCl[5]  ;     //流速测量结果  K C T N V
     int iState ;        //状态
     int iQueryMovingCount ; //查询移动的计数

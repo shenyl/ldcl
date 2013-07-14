@@ -264,7 +264,7 @@ void QSerialThread::moveFish(  )
 
     //根据当前位置判断是出车还是回车，先查询位置
     queryMove( );   //查询铅鱼位置
-    qDebug( ) << "aaaaa" << *(fPos + 4) << currentCx.fQdj  ;
+    qDebug( ) << "move fish pos justify" << *(fPos + 3) << currentCx.fQdj  ;
     if( *(fPos + 3) < currentCx.fQdj )
         sendCmdMove( CMD_HEAD );
     else

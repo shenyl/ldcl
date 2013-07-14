@@ -318,7 +318,8 @@ void QWidgetCl::slotGetMsg( QString strMsg )
     QString strTime ;
     strTime.sprintf( "%02d:%02d:%02d   ", t.hour(),t.minute(),t.second() );
 
-    pPlainTextEdit->appendPlainText( strTime + strMsg );
+    pPlainTextEdit->appendHtml( tr("<font color=\"#000000\">") + strTime + strMsg + tr("</font>")  );
+
 }
 
 //查看测量结果

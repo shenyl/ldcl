@@ -79,7 +79,7 @@ void QLdcl::createMenusAndActions()
     m_actResultQ = new QAction(tr("流量计算"), this);
     m_actResultQ->setToolTip(tr("流量计算"));
     m_actResultQ->setShortcut( QKeySequence(tr("Ctrl+D")) );
-    m_actResultQ->setIcon(QIcon(":/images/ldcl.png"));
+    m_actResultQ->setIcon(QIcon(":/images/report.png"));
     m_menuFunction->addAction(m_actResultQ);
     connect(m_actResultQ, SIGNAL(triggered()), this, SLOT(slotResultQ()));
 
