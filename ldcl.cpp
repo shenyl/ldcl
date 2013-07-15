@@ -3,6 +3,7 @@
 #include "widgetcxe.h"
 #include "qmdiareabackground.h"
 #include "dlgresultq.h"
+#include "browsehistory.h"
 
 //#include "QWidgetManage.h"
 //#include "qdlglogin.h"
@@ -35,7 +36,7 @@ QLdcl::QLdcl(QWidget* parent, Qt::WindowFlags flags)
 
     setCentralWidget(m_mdiArea);//设为中央窗口部件
 
-    connectDatabase();
+//    connectDatabase();
 
     setWindowTitle(tr("水文缆道测控系统"));
 
@@ -82,6 +83,13 @@ void QLdcl::createMenusAndActions()
     m_actResultQ->setIcon(QIcon(":/images/report.png"));
     m_menuFunction->addAction(m_actResultQ);
     connect(m_actResultQ, SIGNAL(triggered()), this, SLOT(slotResultQ()));
+
+    m_actBrowseHistory = new QAction(tr("历史报表查询"), this);
+    m_actBrowseHistory->setToolTip(tr("历史报表查询"));
+    m_actBrowseHistory->setShortcut( QKeySequence(tr("Ctrl+H")) );
+    m_actBrowseHistory->setIcon(QIcon(":/images/report.png"));
+    m_menuFunction->addAction(m_actBrowseHistory);
+    connect(m_actBrowseHistory, SIGNAL(triggered()), this, SLOT(slotBrowseHistory()));
 
     m_actExit = new QAction(tr("退出"), this);
     m_actExit->setToolTip(tr("退出"));
@@ -218,4 +226,10 @@ void QLdcl::slotResultQ( )
 {
     QDlgResultQ  dlg ;
     dlg.exec( );
+}
+
+void QLdcl::slotBrowseHistory( )
+{
+    QBrowseHistory  browse ;
+    browse.exec(  );
 }

@@ -25,11 +25,13 @@ SOURCES += \
         dlgresultq.cpp \
         clscx.cpp \
         func.cpp \
-    getdm.cpp
+        getdm.cpp \
+        qdlglogin.cpp \
+    browsehistory.cpp
 
 #        QWidgetManage.cpp \
 #        sysconfig.cpp \
-#        qdlglogin.cpp
+#
 
 HEADERS += \
         ldcl.h \
@@ -47,12 +49,14 @@ HEADERS += \
         dlgresultq.h \
         clscx.h \
         func.h \
-    getdm.h
+        getdm.h \
+        qdlglogin.h \
+    browsehistory.h
 
 #         QWidgetManage.h \
 #         sysconfig.h \
 #         QWidgetInOut.h \
-#         qdlglogin.h
+#
 
 RESOURCES  =  ldcl.qrc
 

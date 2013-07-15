@@ -7,6 +7,8 @@
 #include  <QSqlDatabase>
 #include  <QMessageBox>
 
+#include  "qdlglogin.h"
+
 int main(int argc, char* argv[])
 {
     Q_INIT_RESOURCE( ldcl );
@@ -19,17 +21,28 @@ int main(int argc, char* argv[])
     QTextCodec* textCodec = QTextCodec::codecForLocale();
     QTextCodec::setCodecForTr(textCodec);
 
-//    //联接数据库
-//    QSqlDatabase m_mainDB = QSqlDatabase::addDatabase("QSQLITE" );          //连接数据库
-//    QString strPath = QCoreApplication::applicationDirPath(  );
-//    m_mainDB.setDatabaseName( strPath + "/ldclaaa.cfg");
+    QSqlDatabase m_mainDB = QSqlDatabase::addDatabase("QSQLITE" );          //连接数据库
+    QString strPath = QCoreApplication::applicationDirPath(  );
 
-//    bool bRes = m_mainDB.open( );
+    m_mainDB.setDatabaseName( strPath + "/ldcl.cfg");
 
-//    if ( !bRes ) {
-//        QMessageBox::warning( NULL, textCodec->toUnicode( "连接数据库失败！" ), \
-//        textCodec->toUnicode( "连接数据库失败！") );
+    bool bRes = m_mainDB.open( );
+
+    if (!bRes) {
+        QMessageBox::warning(NULL, textCodec->toUnicode("提示"), textCodec->toUnicode( "连接数据库失败！") );
+        return -1;
+    }
+
+//    QDlgLogin dlgLogin ;
+
+//    if ( dlgLogin.exec(  ) == QDialog::Accepted ){
+//        if( dlgLogin.iResult != 1 ){
+//            QMessageBox::warning(NULL, textCodec->toUnicode("提示"), textCodec->toUnicode( "密码错误!") );
+//            return -1 ;
+//        }
 //    }
+//    else
+//        return -1 ;
 
     QLdcl ldcl ;
     ldcl.show();

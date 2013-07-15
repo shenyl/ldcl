@@ -18,16 +18,19 @@ public:
     QLdcl(QWidget* parent = 0, Qt::WindowFlags flags = 0);
     ~QLdcl();
 
+    void connectDatabase();     //联接数据库
+
 public slots:
     void slotConfigDm( );
     void slotSysconfig( );
     void slotCl( );
     void slotResultQ( );
     void slotAbout( );
+    void slotBrowseHistory( );
 
 private:
     void createMenusAndActions();
-    void connectDatabase();
+
 
     void createToolBar( );
 
@@ -40,6 +43,8 @@ private:
     QAction* m_actSysconfig;
     QAction* m_actCl;
     QAction* m_actResultQ;
+    QAction* m_actBrowseHistory;
+
 
     QAction* m_actExit;
 
