@@ -36,6 +36,7 @@ QSerialThread::QSerialThread(QObject *parent) :
     iAutoState = AUTO_STATE_STOP ;  //停止状态
     bHalfContinue = true ;          //半自动测速状态时是否继续
     bSecondHeightIng = false ;      //
+    bAux = true ;
 }
 
 void QSerialThread::init(  )
@@ -138,12 +139,22 @@ void QSerialThread::runFullAuto( )
             return ;
         }
         sendCmdMove( CMD_DOWN );    //铅鱼下送
+        if( iAutoMode == MODE_HALF )  bAux = true ;
+
     }
         break;
     case STATE_VER_OVER:
         sendCmdCl( );               //开始测量
         break;
     case STATE_VER_UP_OVER:
+        if( iCxClid >= fNums[currentCx.iClff] && bAux  ){
+            if( iAutoMode == MODE_HALF && listCx.size()>0 ){   //半自动发消息，置停止标志
+                emit sigHalf( );
+                bHalfContinue = false ;
+                bAux = false ;
+                return ;
+            }
+        }
         moveFish(  );
         break;
     case STATE_CL:
@@ -154,10 +165,10 @@ void QSerialThread::runFullAuto( )
         if( iCxClid >= fNums[currentCx.iClff] ){
             computerLs( );
             sendCmdMove( CMD_UP );
-            if( iAutoMode == MODE_HALF && listCx.size()>0 ){   //半自动发消息，置停止标志
-                emit sigHalf( );
-                bHalfContinue = false ;
-            }
+//            if( iAutoMode == MODE_HALF && listCx.size()>0 ){   //半自动发消息，置停止标志
+//                emit sigHalf( );
+//                bHalfContinue = false ;
+//            }
         }
         else{
             currentCx.fCdSs[iCxClid] = currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid];
@@ -290,6 +301,10 @@ void QSerialThread::moveFish(  )
     if( !bRes )  return ;
 
     qDebug( ) << "move fish pos justify" << *(fPos + 3) << currentCx.fQdj  ;
+    if( qAbs( *(fPos+3) - fQdj ) < 0.1  ){      //如果已经在目标水平位置了则直接置状态标志
+        iState = STATE_HOR_OVER ;
+        return ;
+    }
     if( *(fPos + 3) < currentCx.fQdj )
         sendCmdMove( CMD_HEAD );
     else

@@ -465,6 +465,8 @@ void QWidgetCl::slotGetAuto( QString strMsg   )
     radioManual->setChecked( true );
 
     pPlainTextEdit->appendHtml( tr("<font color=\"#ff0000\">") + strMsg + tr("</font>") );
+
+    enableButton(true);
 }
 
 //使能或不使能按钮

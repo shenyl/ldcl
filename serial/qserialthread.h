@@ -61,7 +61,7 @@ public:
     void stopAuto( );
     void pauseAuto( );
     void continueAuto( );
-    void setHalfContinue( ){ bHalfContinue = true ;}
+    void setHalfContinue( ){ bHalfContinue = true ; }
     void setStateNotStart( ){ iState = STATE_NOTSTART ;}
 
     void clearCx( ){ listCx.clear( ); }
@@ -109,6 +109,7 @@ private:
     clsCx  currentCx ;  //当前垂线
 //    int iCxClState ;    //垂线测量状态
     bool bSecondHeightIng ; //第二档上提正在进行中
+    bool bAux ;
 
 signals:
     void sigFishPos( float * fPos, int iNums, bool bRes );  // bRes 表示是在测量中还是测量结果
