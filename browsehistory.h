@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <QFileSystemModel>
 #include <QListView>
+#include <QPushButton>
+#include <QModelIndex>
 
 class QBrowseHistory : public QDialog
 {
@@ -14,11 +16,15 @@ public:
     QFileSystemModel fileModel ;
     QListView   * pListView ;
 
+    QPushButton *buttonOpen ;
+    QPushButton *buttonClose ;
 
-signals:
+    QModelIndex  index ;
 
 public slots:
     void slotOpenXls( QModelIndex  modelIndex );
+    void slotGetIndex( QModelIndex  modelIndex );
+    void slotOpenXls( );
 
 };
 
