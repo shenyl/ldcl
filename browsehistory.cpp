@@ -60,6 +60,7 @@ void QBrowseHistory::slotOpenXls( QModelIndex  modelIndex )
 
 void QBrowseHistory::slotOpenXls( )
 {
+//    slotOpenXls( index );
     qDebug() << fileModel.filePath( index );
 
     QDesktopServices  ds ;
