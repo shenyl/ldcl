@@ -33,16 +33,16 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-//    QDlgLogin dlgLogin ;
+    QDlgLogin dlgLogin ;
 
-//    if ( dlgLogin.exec(  ) == QDialog::Accepted ){
-//        if( dlgLogin.iResult != 1 ){
-//            QMessageBox::warning(NULL, textCodec->toUnicode("提示"), textCodec->toUnicode( "密码错误!") );
-//            return -1 ;
-//        }
-//    }
-//    else
-//        return -1 ;
+    if ( dlgLogin.exec(  ) == QDialog::Accepted ){
+        if( dlgLogin.iResult != 1 ){
+            QMessageBox::warning(NULL, textCodec->toUnicode("提示"), textCodec->toUnicode( "密码错误!") );
+            return -1 ;
+        }
+    }
+    else
+        return -1 ;
 
     QLdcl ldcl ;
     ldcl.show();

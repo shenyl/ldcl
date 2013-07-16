@@ -679,6 +679,7 @@ void QSerialThread::startAutoMode( int iMode )
     bHalfContinue = true ;
     iState = STATE_NOTSTART ;
     bSecondHeightIng = false ;      //
+    bAux = true ;
 }
 
 
