@@ -76,6 +76,10 @@ QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
     buttonMakeReport =  new QPushButton(tr("生成报表")) ;
     connect(buttonMakeReport, SIGNAL(clicked()), this, SLOT(slotMakeReport()));
 
+    labelLsy = new QLabel( tr("流速仪型号: ") );
+
+    InitComboLsy( );    //初始化流速仪
+
     QHBoxLayout *layoutGc = new QHBoxLayout;
     layoutGc->addWidget( lblGcStart );
     layoutGc->addWidget( edtGcStart );
@@ -84,6 +88,9 @@ QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
 
     QHBoxLayout *layoutMake = new QHBoxLayout;
     layoutMake->addStretch( );
+
+    layoutMake->addWidget( labelLsy );
+    layoutMake->addWidget( pComboLsy );
     layoutMake->addWidget( buttonMakeQ );
 //    layoutMake->addWidget( buttonMakeReport );
 
@@ -234,6 +241,11 @@ void QDlgResultQ::slotQueryCl( )
 //生成流量表
 void QDlgResultQ::slotMakeQ( )
 {
+    if( pTableCl->rowCount() == 0 ){
+        QMessageBox::information(0, "", tr("请先选择测量结果!") );
+        return ;
+    }
+
     pTableQ->clear();
     setTitleQ( );
 
@@ -244,6 +256,11 @@ void QDlgResultQ::slotMakeQ( )
             .arg( edtGcEnd->text() );
 
     QSqlQuery  query ;
+    query.exec( strSQL );
+
+    //保存流速仪的序号
+    strSQL = QString("update sysconfig set content = '%1' where id = 6 ")
+            .arg( pComboLsy->currentIndex() );
     query.exec( strSQL );
 
     getCsGc(  );
@@ -808,4 +825,30 @@ void QDlgResultQ::saveXLS(  )
         ds.openUrl( QUrl( strDest ));
     }
     return ;
+}
+
+//初始化流速仪
+void QDlgResultQ::InitComboLsy( )
+{
+    pComboLsy = new QComboBox ;
+
+    QString strSQL ;
+    strSQL = QString("select xh from lsy  order by id ");
+
+    QSqlQuery  query ;
+    query.exec( strSQL );
+
+    QString strXh ;
+    while ( query.next() ){
+        strXh = query.value(0).toString();
+        pComboLsy->insertItem ( pComboLsy->count(), strXh );
+    }
+
+    QString  strId ;
+    strSQL = QString("select content from sysconfig where id = 6");
+    query.exec( strSQL );
+    while ( query.next() ){
+        strId = query.value(0).toString( );
+        pComboLsy->setCurrentIndex( strId.toInt() );
+    }
 }

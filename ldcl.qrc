@@ -8,7 +8,10 @@
         <file>images/background.png</file>
         <file>images/ldcl.png</file>
         <file>images/sysconfig.png</file>
-        <file>images/dm.png</file>
         <file>images/report.png</file>
+        <file>images/operators.png</file>
+        <file>images/lljs.png</file>
+        <file>images/reporthistory.png</file>
+        <file>images/dm.png</file>
     </qresource>
 </RCC>

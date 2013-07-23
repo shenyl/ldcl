@@ -27,7 +27,8 @@ SOURCES += \
         func.cpp \
         getdm.cpp \
         qdlglogin.cpp \
-    browsehistory.cpp
+        browsehistory.cpp  \
+        sqlquerymodelresult.cpp
 
 #        QWidgetManage.cpp \
 #        sysconfig.cpp \
@@ -51,7 +52,8 @@ HEADERS += \
         func.h \
         getdm.h \
         qdlglogin.h \
-    browsehistory.h
+        browsehistory.h  \
+        sqlquerymodelresult.h
 
 #         QWidgetManage.h \
 #         sysconfig.h \

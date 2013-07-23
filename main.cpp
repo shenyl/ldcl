@@ -9,6 +9,8 @@
 
 #include  "qdlglogin.h"
 
+//for stash
+
 int main(int argc, char* argv[])
 {
     Q_INIT_RESOURCE( ldcl );
@@ -34,17 +36,20 @@ int main(int argc, char* argv[])
     }
 
     QDlgLogin dlgLogin ;
+    int iUserPower ;
 
-    if ( dlgLogin.exec(  ) == QDialog::Accepted ){
+    if ( dlgLogin.exec( ) == QDialog::Accepted ){
         if( dlgLogin.iResult != 1 ){
             QMessageBox::warning(NULL, textCodec->toUnicode("Ã· æ"), textCodec->toUnicode( "√‹¬Î¥ÌŒÛ!") );
             return -1 ;
         }
+        iUserPower = dlgLogin.iPower ;
     }
     else
         return -1 ;
 
-    QLdcl ldcl ;
+
+    QLdcl ldcl(iUserPower) ;
     ldcl.show();
 
     return app.exec();

@@ -15,6 +15,7 @@
 QDlgLogin::QDlgLogin(QWidget *parent)
     : QDialog(parent), iNameListIndex(0)
 {
+    iPower = 0 ;
     initDialog();
     fillComboOperator();
 
@@ -81,7 +82,7 @@ void QDlgLogin::fillComboOperator()
         pNameList->addItem( strOperName );
 
         listPwd.append(query.value(2).toString());
-        listPower.append(query.value(3).toString());
+        listPower.append( query.value(3).toInt() );
     }
 }
 
@@ -89,8 +90,10 @@ void QDlgLogin::fillComboOperator()
 void QDlgLogin::pwdConfirm()
 {
     QString strPwdValue = pPwdValue->text( );
-    if(strPwdValue == listPwd[iNameListIndex])
+    if(strPwdValue == listPwd[iNameListIndex]){
         iResult = 1 ;
+        iPower = listPower.at( iNameListIndex );
+    }
     else
         iResult = 0 ;
 

@@ -23,9 +23,11 @@
 #include <QToolBar>
 #include <QMdiSubWindow>
 
-QLdcl::QLdcl(QWidget* parent, Qt::WindowFlags flags)
+QLdcl::QLdcl( int iUserPower, QWidget* parent, Qt::WindowFlags flags )
 	: QMainWindow(parent, flags)
 {
+    this->iUserPower = iUserPower ;
+    qDebug( ) << "user power" << iUserPower ;
     createMenusAndActions();
     createToolBar( );
 
@@ -69,6 +71,19 @@ void QLdcl::createMenusAndActions()
 
     connect(m_actSysconfig, SIGNAL(triggered()), this, SLOT( slotSysconfig( ) ));
 
+    if( iUserPower == 9 ){
+        m_actOperators = new QAction(tr("人员设置"), this);
+        m_actOperators->setToolTip(tr("系统设置"));
+        m_actOperators->setIcon(QIcon(":/images/operators.png"));
+        //    m_actOperators->setShortcut( QKeySequence(tr("Ctrl+C")) );
+        m_menuFunction->addAction(m_actOperators);
+        connect(m_actOperators, SIGNAL(triggered()), this, SLOT( slotOperators( ) ));
+    }
+
+    m_actLsy = new QAction(tr("流速仪设置"), this);
+    m_actLsy->setToolTip(tr("流速仪设置"));
+    m_menuFunction->addAction( m_actLsy );
+    connect(m_actLsy, SIGNAL(triggered()), this, SLOT( slotLsy( )));
 
     m_actCl = new QAction(tr("测量"), this);
     m_actCl->setToolTip(tr("测量"));
@@ -80,14 +95,14 @@ void QLdcl::createMenusAndActions()
     m_actResultQ = new QAction(tr("流量计算"), this);
     m_actResultQ->setToolTip(tr("流量计算"));
     m_actResultQ->setShortcut( QKeySequence(tr("Ctrl+D")) );
-    m_actResultQ->setIcon(QIcon(":/images/report.png"));
+    m_actResultQ->setIcon(QIcon(":/images/lljs.png"));
     m_menuFunction->addAction(m_actResultQ);
     connect(m_actResultQ, SIGNAL(triggered()), this, SLOT(slotResultQ()));
 
     m_actBrowseHistory = new QAction(tr("历史报表查询"), this);
     m_actBrowseHistory->setToolTip(tr("历史报表查询"));
     m_actBrowseHistory->setShortcut( QKeySequence(tr("Ctrl+H")) );
-    m_actBrowseHistory->setIcon(QIcon(":/images/report.png"));
+    m_actBrowseHistory->setIcon(QIcon(":/images/reporthistory.png"));
     m_menuFunction->addAction(m_actBrowseHistory);
     connect(m_actBrowseHistory, SIGNAL(triggered()), this, SLOT(slotBrowseHistory()));
 
@@ -120,38 +135,13 @@ void QLdcl::createToolBar( )
     toolBar->addAction( m_actSysconfig );
     toolBar->addAction( m_actCl );
     toolBar->addAction( m_actResultQ );
+    toolBar->addAction( m_actBrowseHistory );
+
+    if( iUserPower == 9 )
+        toolBar->addAction( m_actOperators );
 
     addToolBar( Qt::LeftToolBarArea, toolBar );
     toolBar->setOrientation( Qt::Vertical );
-
-//    QToolButton * pToolButtonVehicle = new QToolButton ;
-//    pToolButtonVehicle->setIcon(QIcon(":/images/vehicle.png"));
-//    toolBar->addWidget( pToolButtonVehicle );
-//    pToolButtonVehicle->setToolTip ( tr("车辆登记") );
-//    connect(pToolButtonVehicle,SIGNAL(clicked()),this,SLOT( slotVehicle()));
-
-//    QToolButton * pToolButtonDriver = new QToolButton ;
-//    pToolButtonDriver->setIcon(QIcon(":/images/driver.png"));
-//    toolBar->addWidget( pToolButtonDriver );
-//    pToolButtonDriver->setToolTip ( tr("司机登记") );
-//    connect( pToolButtonDriver, SIGNAL(clicked()),this,SLOT( slotDriver() ));
-
-//    QToolButton * pToolButtonInOut = new QToolButton ;
-//    pToolButtonInOut->setIcon(QIcon(":/images/inout.png"));
-//    toolBar->addWidget( pToolButtonInOut );
-//    pToolButtonInOut->setToolTip ( tr("出入记录") );
-//    connect( pToolButtonInOut, SIGNAL(clicked()),this,SLOT( slotInOut() ) );
-
-//    QToolButton * pToolButtonHelp = new QToolButton ;
-//    pToolButtonHelp->setIcon(QIcon(":/images/help.png"));
-//    toolBar->addWidget( pToolButtonHelp );
-//    pToolButtonHelp->setToolTip ( tr("帮助") );
-//    connect( pToolButtonHelp, SIGNAL(clicked()),this,SLOT( slotAbout()));
-
-//    toolBar->addWidget( pToolButtonVehicle );
-//    toolBar->addWidget( pToolButtonDriver );
-//    toolBar->addWidget( pToolButtonInOut );
-//    toolBar->addWidget( pToolButtonHelp );
 }
 
 
@@ -232,4 +222,30 @@ void QLdcl::slotBrowseHistory( )
 {
     QBrowseHistory  browse ;
     browse.exec(  );
+}
+
+//操作员设置
+void QLdcl::slotOperators( )
+{
+    closeWin( );
+
+    QWidget *  pSubWidget = new QWidgetCxE( QString("operators") );
+
+    m_mdiArea->addSubWindow( pSubWidget );
+
+    pSubWidget->showMaximized( );
+    pSubWidget->show( );
+}
+
+//流速仪
+void QLdcl::slotLsy( )
+{
+    closeWin( );
+
+    QWidget *  pSubWidget = new QWidgetCxE( QString("lsy") );
+
+    m_mdiArea->addSubWindow( pSubWidget );
+
+    pSubWidget->showMaximized( );
+    pSubWidget->show( );
 }

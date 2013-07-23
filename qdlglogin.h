@@ -2,6 +2,7 @@
 #define QDLGLOGIN_H
 
 #include <QDialog>
+#include <QList>
 
 class QLabel;
 class QComboBox;
@@ -26,6 +27,7 @@ public slots:
 
 public:
     int iResult ;
+    int iPower ;
 
 private:
     QLabel * pLabelName;
@@ -38,9 +40,8 @@ private:
     QStringList listId;
     QStringList listName;
     QStringList listPwd;
-    QStringList listPower;
+    QList<int> listPower;
 
-    //int iNumbers;
     int iNameListIndex;
 };
 

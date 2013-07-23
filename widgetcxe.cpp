@@ -210,19 +210,3 @@ void QWidgetCxE::getWaterDepth(  )
 //    fWaterGc = .toFloat();
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

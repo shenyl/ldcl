@@ -15,7 +15,7 @@ class QLdcl : public QMainWindow
     Q_OBJECT
 
 public:
-    QLdcl(QWidget* parent = 0, Qt::WindowFlags flags = 0);
+    QLdcl( int iUserPower, QWidget* parent = 0, Qt::WindowFlags flags = 0);
     ~QLdcl();
 
     void connectDatabase();     //联接数据库
@@ -27,6 +27,8 @@ public slots:
     void slotResultQ( );
     void slotAbout( );
     void slotBrowseHistory( );
+    void slotOperators( );
+    void slotLsy( );
 
 private:
     void createMenusAndActions();
@@ -44,6 +46,8 @@ private:
     QAction* m_actCl;
     QAction* m_actResultQ;
     QAction* m_actBrowseHistory;
+    QAction* m_actOperators;
+    QAction* m_actLsy;
 
 
     QAction* m_actExit;
@@ -53,7 +57,8 @@ private:
 
     QMdiAreaBackGround * m_mdiArea;
 
-    QSqlDatabase m_mainDB;
+    QSqlDatabase m_mainDB ;
+    int iUserPower ;
 };
 
 #endif  // QLDCL_H
