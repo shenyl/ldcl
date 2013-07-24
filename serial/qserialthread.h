@@ -82,6 +82,7 @@ public:
 protected:
     void writeComm( char c );
     void readComm( );
+    void readPara( );
 
 private:
     QCommSerial serial ;

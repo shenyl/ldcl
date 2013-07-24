@@ -16,6 +16,9 @@
 #include <QCheckBox>
 #include <QList>
 #include <QComboBox>
+#include <QTabWidget>
+
+#include "widgetv.h"
 
 #define   INDEX_CS_NO       0       //测深编号
 #define   INDEX_CV_NO       1       //测速编号
@@ -50,9 +53,13 @@ private slots:
     void slotMakeQ( );
     void slotMakeReport( );
     void slotSelectChange( int );
+    void slotBrowseVLine( );
 
 private:
     //流量制作类的成员
+    QTabWidget * pTab ;
+    QWidgetV * pWidgetV ;
+
     QLabel * lblStart, * lblEnd ;
     QLineEdit * edtDateStart, * edtDateEnd ;
     QTableWidget * pTableCl, * pTableQ ;
@@ -65,6 +72,7 @@ private:
     QLineEdit * edtGcStart, * edtGcEnd ;
     QPushButton *buttonMakeQ ;
     QPushButton *buttonMakeReport ;
+    QPushButton *buttonBrowseVLine ;
     QLabel * labelLsy ;
     QComboBox * pComboLsy ;
 
@@ -102,6 +110,7 @@ private:
 
     void saveXLS( );
     void InitComboLsy( );
+    void drawVLine( );
 
 };
 

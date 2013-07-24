@@ -4,8 +4,9 @@
 #include <QSqlQuery>
 #include <QDateTime>
 
+#define  MAX_NUMS  8
 //倍数
-static const double fMulti[4][5] = {
+static  double fMulti[MAX_NUMS][5] = {   //将使用从数据库中读取的数据
     1,0,0,0,0,
     1,1,0,0,0,
     1,1,1,0,0,
@@ -13,7 +14,7 @@ static const double fMulti[4][5] = {
 };
 
 //水深
-static const double fRatioSs[4][5] = {
+static  double fRatioSs[MAX_NUMS][5] = {  //将使用从数据库中读取的数据
     0.6, 0,   0,   0,    0,
     0.2, 0.8, 0,   0,    0,
     0.2, 0.6, 0.8, 0,    0,
@@ -22,7 +23,7 @@ static const double fRatioSs[4][5] = {
 
 //一点法和五点法对应的测量点数
 //根据测量方法iclff取值
-static const double fNums[5] = {
+static  double fNums[MAX_NUMS] = {  //将使用从数据库中读取的数据
     1,2,3,5
 };
 
@@ -48,6 +49,7 @@ void QSerialThread::init(  )
     if( !bConnected ){
         QMessageBox::warning(NULL, tr(""), tr("串口打开失败! "));
     }
+    readPara( );
 }
 
 void QSerialThread::run( )
@@ -711,5 +713,54 @@ void QSerialThread::printfCx( )
 {
     for(int i=0; i<listCx.size(); i++ ){
         listCx[i].printf( );
+    }
+}
+
+//读取参数
+void QSerialThread::readPara( )
+{
+    QSqlQuery query ;
+    QString strSql ;
+
+    strSql = QString( "select * from paramulti" );
+    query.exec( strSql );
+
+    int iId ;
+    float  f[5];
+    while ( query.next() ){
+        iId = query.value(0).toInt();
+        f[0] = query.value(1).toFloat( );
+        f[1] = query.value(2).toFloat( );
+        f[2] = query.value(3).toFloat( );
+        f[3] = query.value(4).toFloat( );
+        f[4] = query.value(5).toFloat( );
+        for(int i=0; i<5; i++)
+            fMulti[iId][i] = f[i];
+//        qDebug() << iId << f[0]<< f[1]<< f[2]<< f[3] << f[4];
+    }
+
+    strSql = QString( "select * from parass" );
+    query.exec( strSql );
+
+    while ( query.next() ){
+        iId = query.value(0).toInt();
+        f[0] = query.value(1).toFloat( );
+        f[1] = query.value(2).toFloat( );
+        f[2] = query.value(3).toFloat( );
+        f[3] = query.value(4).toFloat( );
+        f[4] = query.value(5).toFloat( );
+        for(int i=0; i<5; i++)
+            fRatioSs[iId][i] = f[i];
+//        qDebug() << iId << f[0]<< f[1]<< f[2]<< f[3] << f[4];
+    }
+
+    strSql = QString( "select * from paranum" );
+    query.exec( strSql );
+    int iNums ;
+    while ( query.next() ){
+        iId = query.value(0).toInt();
+        iNums = query.value(1).toInt();
+        fNums[iId] = iNums ;
+//        qDebug() << iId << iNums ;
     }
 }

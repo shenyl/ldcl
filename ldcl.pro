@@ -20,15 +20,20 @@ SOURCES += \
         ./serial/win_qextserialport.cpp \
         ./serial/qserialthread.cpp \
         itemdm.cpp \
+        itemv.cpp \
         graphicviewdm.cpp \
+        graphicviewv.cpp \
         dlgresult.cpp \
+        dlgresultcl.cpp \
         dlgresultq.cpp \
         clscx.cpp \
         func.cpp \
         getdm.cpp \
         qdlglogin.cpp \
         browsehistory.cpp  \
-        sqlquerymodelresult.cpp
+        sqlquerymodelresult.cpp \
+        widgetv.cpp \
+
 
 #        QWidgetManage.cpp \
 #        sysconfig.cpp \
@@ -45,15 +50,19 @@ HEADERS += \
         ./serial/win_qextserialport.h \
         ./serial/qserialthread.h \
         itemdm.h \
+        itemv.h \
         graphicviewdm.h \
+        graphicviewv.h \
         dlgresult.h \
+        dlgresultcl.h \
         dlgresultq.h \
         clscx.h \
         func.h \
         getdm.h \
         qdlglogin.h \
         browsehistory.h  \
-        sqlquerymodelresult.h
+        sqlquerymodelresult.h \
+        widgetv.h
 
 #         QWidgetManage.h \
 #         sysconfig.h \

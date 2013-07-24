@@ -36,17 +36,17 @@ int main(int argc, char* argv[])
     }
 
     QDlgLogin dlgLogin ;
-    int iUserPower ;
+    int iUserPower = 1;
 
-    if ( dlgLogin.exec( ) == QDialog::Accepted ){
-        if( dlgLogin.iResult != 1 ){
-            QMessageBox::warning(NULL, textCodec->toUnicode("提示"), textCodec->toUnicode( "密码错误!") );
-            return -1 ;
-        }
-        iUserPower = dlgLogin.iPower ;
-    }
-    else
-        return -1 ;
+//    if ( dlgLogin.exec( ) == QDialog::Accepted ){
+//        if( dlgLogin.iResult != 1 ){
+//            QMessageBox::warning(NULL, textCodec->toUnicode("提示"), textCodec->toUnicode( "密码错误!") );
+//            return -1 ;
+//        }
+//        iUserPower = dlgLogin.iPower ;
+//    }
+//    else
+//        return -1 ;
 
 
     QLdcl ldcl(iUserPower) ;

@@ -1,6 +1,7 @@
 #include "widgetcl.h"
 #include "graphicviewdm.h"
 #include "dlgresult.h"
+#include "dlgresultcl.h"
 
 #include "clscx.h"
 
@@ -325,7 +326,10 @@ void QWidgetCl::slotGetMsg( QString strMsg )
 //查看测量结果
 void QWidgetCl::slotClResult(  )
 {
-    QDlgResult dlg("result") ;
+//    QDlgResult dlg("result") ;
+//    dlg.exec();
+
+    QDlgResultCl dlg("result") ;
     dlg.exec();
 }
 

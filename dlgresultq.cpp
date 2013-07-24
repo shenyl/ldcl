@@ -2,6 +2,8 @@
 #include "combodelegate.h"
 #include "func.h"
 #include "getdm.h"
+#include "graphicviewv.h"
+#include "itemv.h"
 
 #include <QHBoxLayout>
 #include <QSqlQuery>
@@ -23,6 +25,7 @@
 QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
     : QDialog(parent, flags)
 {
+    pTab = new QTabWidget ;
 
     lblStart = new QLabel(tr("开始时间：")) ;
     lblEnd = new QLabel(tr("结束时间：")) ;
@@ -45,12 +48,15 @@ QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
     layout2->addWidget( edtDateEnd );
 
     QHBoxLayout *layoutButtonCl = new QHBoxLayout;
-//    layoutButtonCl->addStretch( );
     layoutButtonCl->addWidget( checkBoxSelect );
     layoutButtonCl->addWidget( buttonQueryCl );
 
     pTableCl = new QTableWidget ;
     pTableQ = new QTableWidget ;
+    pWidgetV = new QWidgetV ;
+
+    pTab->addTab( pTableQ, tr("流量表") );
+    pTab->addTab( pWidgetV, tr("速度线") );
 
     QFrame * leftFrame =new QFrame ;
 
@@ -76,6 +82,9 @@ QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
     buttonMakeReport =  new QPushButton(tr("生成报表")) ;
     connect(buttonMakeReport, SIGNAL(clicked()), this, SLOT(slotMakeReport()));
 
+    buttonBrowseVLine =  new QPushButton(tr("查看速度线")) ;
+    connect(buttonBrowseVLine, SIGNAL(clicked()), this, SLOT( slotBrowseVLine()));
+
     labelLsy = new QLabel( tr("流速仪型号: ") );
 
     InitComboLsy( );    //初始化流速仪
@@ -91,13 +100,14 @@ QDlgResultQ::QDlgResultQ( QWidget* parent, Qt::WindowFlags flags )
 
     layoutMake->addWidget( labelLsy );
     layoutMake->addWidget( pComboLsy );
+    layoutMake->addWidget( buttonBrowseVLine );
     layoutMake->addWidget( buttonMakeQ );
 //    layoutMake->addWidget( buttonMakeReport );
 
     QVBoxLayout *layoutRight = new QVBoxLayout;
     layoutRight->addLayout( layoutGc );
     layoutRight->addLayout( layoutMake );
-    layoutRight->addWidget( pTableQ );
+    layoutRight->addWidget( pTab );
 
     QHBoxLayout *mainLayout = new QHBoxLayout;
 //    mainLayout->addLayout( layoutLeft );
@@ -246,7 +256,7 @@ void QDlgResultQ::slotMakeQ( )
         return ;
     }
 
-    pTableQ->clear();
+    pTableQ->clear( );
     setTitleQ( );
 
     //保存结束时的水面高程
@@ -851,4 +861,39 @@ void QDlgResultQ::InitComboLsy( )
         strId = query.value(0).toString( );
         pComboLsy->setCurrentIndex( strId.toInt() );
     }
+}
+
+//绘制速度线
+void QDlgResultQ::drawVLine( )
+{
+    int i ;
+    float fQdj, fV ;
+    QTableWidgetItem *  pItem ;
+
+    ItemV * pItemV ;
+    QGraphicViewV * pGraphicView ;
+    pGraphicView = pWidgetV->pGraphicViewV ;
+    pItemV = pGraphicView->getItem( );
+
+    pItemV->clearLine();
+    for( i=pTableCl->rowCount()-1; i>=0; i-- ){
+        pItem = pTableCl->item( i, 0 );
+        if( pItem->checkState() == Qt::Checked ){
+            pItem = pTableCl->item( i, 2 );
+            fQdj = pItem->text().toFloat();
+
+            pItem = pTableCl->item( i, 3 );
+            fV = pItem->text().toFloat();
+
+            pItemV->addVLine( fQdj, fV );
+        }
+    }
+    pItemV->drawLine();
+}
+
+//查看速度线
+void QDlgResultQ::slotBrowseVLine( )
+{
+    drawVLine( );
+    pTab->setCurrentIndex( 1 );
 }
