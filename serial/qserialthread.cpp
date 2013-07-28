@@ -1,5 +1,8 @@
 #include "qserialthread.h"
 
+//#include "../ramdrive.h"
+//#include "../getdm.h"
+
 #include <QMessageBox>
 #include <QSqlQuery>
 #include <QDateTime>
@@ -38,6 +41,9 @@ QSerialThread::QSerialThread(QObject *parent) :
     bHalfContinue = true ;          //半自动测速状态时是否继续
     bSecondHeightIng = false ;      //
     bAux = true ;
+    sendBuf.setMem( &serial );
+    pRam = NULL ;
+    dm.readDm(  );      //读断面资料
 }
 
 void QSerialThread::init(  )
@@ -57,7 +63,14 @@ void QSerialThread::run( )
     if( !bConnected )  return ;
 
     while( true ){
-        switch( iAutoMode  ){
+//        qDebug( ) << "buf count" << sendBuf.getCount()  ;
+        if( sendBuf.getCount() > 0 ){
+            msleep(200);
+//            qDebug() << "resend ing" ;
+            continue ;
+        }
+
+        switch( iAutoMode ){
         case MODE_MANU:
             runManu( );
             break ;
@@ -128,9 +141,15 @@ void QSerialThread::runFullAuto( )
         break;
     case STATE_HOR_OVER:
     {
-        currentCx.fCdSs[iCxClid] = currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid];
-//        qDebug() << tr("水深") << currentCx.fCdSs[iCxClid] ;
+        //
+        if( currentCx.iCzff == KIND_SS_CL && !bAfterClss ){
+            setConfigSs( QString("100"), true, false );    //置水深
+            sendCmdMove( CMD_DOWN, false, true  );    //铅鱼下送
+            break;
+        }
 
+        currentCx.fSs = getSs( );
+        currentCx.fCdSs[iCxClid] = currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid];
         QString strSs = QString("%1").arg(currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid]);
         bool bRes ;
         bRes = setConfigSs( strSs );    //置水深
@@ -146,9 +165,19 @@ void QSerialThread::runFullAuto( )
     }
         break;
     case STATE_VER_OVER:
+        if( currentCx.iCzff == KIND_SS_CL && !bAfterClss ){
+            currentCx.fSs = *(fPos + 5) ; //当前水深
+            sendCmdMove( CMD_UP, false, true  );    //铅鱼下送
+            bAfterClss = true ;
+            break;
+        }
         sendCmdCl( );               //开始测量
         break;
     case STATE_VER_UP_OVER:
+        if( currentCx.iCzff == KIND_SS_CL && bAfterClss ){
+            //下沉到第一个点
+            break;
+        }
         if( iCxClid >= fNums[currentCx.iClff] && bAux  ){
             if( iAutoMode == MODE_HALF && listCx.size()>0 ){   //半自动发消息，置停止标志
                 emit sigHalf( );
@@ -157,6 +186,7 @@ void QSerialThread::runFullAuto( )
                 return ;
             }
         }
+
         moveFish(  );
         break;
     case STATE_CL:
@@ -186,20 +216,25 @@ void QSerialThread::runFullAuto( )
             sendCmdMove( CMD_DOWN );    //铅鱼下送
         }
         break;
+
+    case STATE_STOPUP:  //处于急停状态恢复之后
+    {
+        if( iCxClid < fNums[currentCx.iClff] ){
+            currentCx.fCdSs[iCxClid] = currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid];
+            QString strSs = QString("%1").arg(currentCx.fSs * fRatioSs[currentCx.iClff][iCxClid]);
+            setConfigSs( strSs );               //置水深
+            sendCmdMove( CMD_DOWN, false );     //铅鱼下送
+        }
+    }
+    break;
     default:
         msleep(200);
         break;
     }
 }
 
-//操作方法1  应用水深
-void QSerialThread::runCzff1(  )
-{
-
-}
-
-//操作方法2  先测水深
-void QSerialThread::runCzff2(  )
+//操作方法  先测水深
+void QSerialThread::runClss(  )
 {
 
 }
@@ -267,6 +302,7 @@ void QSerialThread::computerLs( )
 
 void QSerialThread::moveFish(  )
 {
+    qDebug( ) << "moveFish" ;
     iCxClid = 0;
     if( listCx.isEmpty() ){
         if( bSecondHeightIng ){     //第二次提升完成后结束全自动过程
@@ -287,30 +323,33 @@ void QSerialThread::moveFish(  )
         currentCx = listCx.front();
         listCx.pop_front();
     }
-    bool bRes ;
-    bRes = setConfigQdj( QString("%1").arg( currentCx.fQdj ) );
-    if( !bRes )
-    {
-        stopAuto( );
-        emit sigAuto( tr("自动测量异常结束！因为起点距设置未成功未能正常执行") );
-        return ;
-    }
-
     //根据当前位置判断是出车还是回车，先查询位置
+    fQdj = currentCx.fQdj ;
+
+    bool bRes ;
     bRes = queryMove( );   //查询铅鱼位置
     if( !bRes )
         bRes = queryMove( );   //查询铅鱼位置
     if( !bRes )  return ;
 
     qDebug( ) << "move fish pos justify" << *(fPos + 3) << currentCx.fQdj  ;
+
     if( qAbs( *(fPos+3) - fQdj ) < 0.1  ){      //如果已经在目标水平位置了则直接置状态标志
         iState = STATE_HOR_OVER ;
         return ;
     }
+
+    bRes = setConfigQdj( QString("%1").arg( currentCx.fQdj ), true, false );
+
+    qDebug(  ) << *(fPos + 3) << currentCx.fQdj ;
+
     if( *(fPos + 3) < currentCx.fQdj )
-        sendCmdMove( CMD_HEAD );
+        sendCmdMove( CMD_HEAD, false, true );
     else
-        sendCmdMove( CMD_BACK );
+        sendCmdMove( CMD_BACK, false, true );
+
+    if( currentCx.iCzff == KIND_SS_CL ) bAfterClss = false ;
+
 }
 
 void QSerialThread::writeComm( char c )
@@ -342,10 +381,10 @@ bool QSerialThread::queryMove(  )
     msleep(500);
     readComm( );
 
-    msleep(500);
+//    msleep(500);
 
     writeComm( 'd' );
-    msleep(1000);
+    msleep(500);
     readComm( );
 
     if( iLenInput < 5 ) return false ;
@@ -401,101 +440,132 @@ bool QSerialThread::queryMove(  )
 
 }
 
-bool QSerialThread::setConfigQdj( QString strValue )
+//bClear    是否清队列
+//bGo       是否继续
+bool QSerialThread::setConfigQdj( QString strValue, bool bClear , bool bGo )
 {
-    writeComm( 'j' );
-    msleep(500);
-    readComm( );
-
-    writeComm( 'g' );
-    msleep(500);
-    readComm( );
+    char cmd[] = "jg";
 
     fQdj = strValue.toFloat( );
     float f =  fQdj * 10 ;
     int iValue = (int)f ;
     char chValue[10];
     sprintf( chValue,"%04d", iValue );
-    serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
-    msleep(500);
-    readComm( );
 
-    emit sigSendMsg(tr("设置起点距完成!") + QString("%1").arg( (char*)chBufInput  )  );
+    if( bClear ) sendBuf.clear( );
+    sendBuf.addBuf( (unsigned char *)cmd, 2, KIND_CHAR  );
+    sendBuf.addBuf( (unsigned char *)chValue , 4, KIND_WHOLE );
+    if( bGo ) sendBuf.setGo( );
 
-    //判断设备是否成功，如果成功执行下一步，如果不成功则重试一次
-    QString strResult ;
-    bool bRes = false ;
-    strResult.sprintf("%s",  (char*)chBufInput );
-    bRes = strResult.contains( QString("%1").arg(chValue)  );
+    emit sigSendMsg( tr("设置起点距完成!") );
+    return true ;
 
-    if( bRes ) return true ;
-    msleep(1000);
+//    writeComm( 'j' );
+//    msleep(500);
+//    readComm( );
 
-    //第二次设置起点距参数
-    serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
-    msleep(500);
-    readComm( );
-    emit sigSendMsg(tr("设置起点距完成!") + QString("%1").arg( (char*)chBufInput  )  );
-    strResult.sprintf("%s",  (char*)chBufInput );
-    bRes = strResult.contains( QString("%1").arg(chValue)  );
+//    writeComm( 'g' );
+//    msleep(500);
+//    readComm( );
 
-    return bRes ;
+//    fQdj = strValue.toFloat( );
+//    float f =  fQdj * 10 ;
+//    int iValue = (int)f ;
+//    char chValue[10];
+//    sprintf( chValue,"%04d", iValue );
+//    serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
+//    msleep(500);
+//    readComm( );
+
+//    emit sigSendMsg(tr("设置起点距完成!") + QString("%1").arg( (char*)chBufInput  )  );
+
+//    //判断设备是否成功，如果成功执行下一步，如果不成功则重试一次
+//    QString strResult ;
+//    bool bRes = false ;
+//    strResult.sprintf("%s",  (char*)chBufInput );
+//    bRes = strResult.contains( QString("%1").arg(chValue)  );
+
+//    if( bRes ) return true ;
+//    msleep(1000);
+
+//    //第二次设置起点距参数
+//    serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
+//    msleep(500);
+//    readComm( );
+//    emit sigSendMsg(tr("设置起点距完成!") + QString("%1").arg( (char*)chBufInput  )  );
+//    strResult.sprintf("%s",  (char*)chBufInput );
+//    bRes = strResult.contains( QString("%1").arg(chValue)  );
+
+//    return bRes ;
 
 }
 
-bool QSerialThread::setConfigSs( QString strValue )
+bool QSerialThread::setConfigSs( QString strValue , bool bClear, bool bGo )
 {
-    writeComm( 'j' );
-    msleep(500);
-    readComm( );
-
-    writeComm( 'i' );
-    msleep(500);
-    readComm( );
+    char cmd[] = "ji";
 
     fSs = strValue.toFloat();
     float f =  fSs * 100 ;
     int iValue = (int)f ;
     char chValue[10];
     sprintf( chValue,"%04d", iValue );
-    serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
-    msleep(500);
-    readComm( );
 
-    emit sigSendMsg(tr("设置水深完成!") + QString("%1").arg( (char*)chBufInput ) );
+    if( bClear )
+        sendBuf.clear( );
+    sendBuf.addBuf( (unsigned char *)cmd, 2, KIND_CHAR  );
+    sendBuf.addBuf( (unsigned char *)chValue , 4, KIND_WHOLE );
+    if( bGo ) sendBuf.setGo( );
 
-    //判断设备是否成功，如果成功执行下一步，如果不成功则重试一次
-    QString strResult ;
-    bool bRes = false ;
-    strResult.sprintf("%s",  (char*)chBufInput );
-    bRes = strResult.contains( QString("%1").arg(chValue)  );
+    emit sigSendMsg( tr("设置水深完成!") );
+    return true ;
 
-    if( bRes ) return true ;
+//    writeComm( 'j' );
+//    msleep(500);
+//    readComm( );
 
-    msleep(1000);
+//    writeComm( 'i' );
+//    msleep(500);
+//    readComm( );
 
-    //第二次设置水深参数
-    serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
-    msleep(500);
-    readComm( );
-    emit sigSendMsg(tr("设置水深完成!") + QString("%1").arg( (char*)chBufInput  )  );
-    strResult.sprintf("%s",  (char*)chBufInput );
-    bRes = strResult.contains( QString("%1").arg(chValue)  );
+//    fSs = strValue.toFloat();
+//    float f =  fSs * 100 ;
+//    int iValue = (int)f ;
+//    char chValue[10];
+//    sprintf( chValue,"%04d", iValue );
+//    serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
+//    msleep(500);
+//    readComm( );
 
-    return bRes ;
+//    emit sigSendMsg(tr("设置水深完成!") + QString("%1").arg( (char*)chBufInput ) );
+
+//    //判断设备是否成功，如果成功执行下一步，如果不成功则重试一次
+//    QString strResult ;
+//    bool bRes = false ;
+//    strResult.sprintf("%s",  (char*)chBufInput );
+//    bRes = strResult.contains( QString("%1").arg(chValue)  );
+
+//    if( bRes ) return true ;
+
+//    msleep(1000);
+
+//    //第二次设置水深参数
+//    serial.writeCom( (unsigned char*)chValue, 4 );    //写串口k
+//    msleep(500);
+//    readComm( );
+//    emit sigSendMsg(tr("设置水深完成!") + QString("%1").arg( (char*)chBufInput  )  );
+//    strResult.sprintf("%s",  (char*)chBufInput );
+//    bRes = strResult.contains( QString("%1").arg(chValue)  );
+
+//    return bRes ;
 }
 
 static char chCmd[5][2] = { 'l', 'w', 'l', 'n', 'l', 'y', 'l', 'x', 'l', 'm' };
 
-void QSerialThread::sendCmdMove( int iCmd )
+void QSerialThread::sendCmdMove( int iCmd, bool bClear, bool bGo )
 {
-    writeComm( chCmd[iCmd][0] );
-    msleep(500);
-    readComm( );
-
-    writeComm( chCmd[iCmd][1] );
-    msleep(500);
-    readComm( );
+    if( bClear ) sendBuf.clear( );
+    sendBuf.addBuf( (unsigned char *)(chCmd+iCmd), 2, KIND_CHAR  );
+    if( bGo ) sendBuf.setGo( );
 
     switch(iCmd){
     case CMD_HEAD:
@@ -673,6 +743,18 @@ bool QSerialThread::queryCl( )
     return true ;
 }
 
+//停止后上行，停止后处于停止状态
+void QSerialThread::stopUp( )
+{
+    iState = STATE_STOPUP ;
+    iAutoState = AUTO_STATE_PAUSE ;
+
+    sendBuf.clear( );
+    sendBuf.addBuf( (unsigned char *)(chCmd+CMD_STOP), 2, KIND_CHAR  );
+    sendBuf.addBuf( (unsigned char *)(chCmd+CMD_UP), 2, KIND_CHAR  );
+    sendBuf.setGo( );
+}
+
 //开启自模式
 void QSerialThread::startAutoMode( int iMode )
 {
@@ -695,7 +777,6 @@ void QSerialThread::stopAuto( )
     iAutoMode = MODE_MANU ;
 }
 
-
 //暂停自动测速模式
 void QSerialThread::pauseAuto( )
 {
@@ -717,6 +798,7 @@ void QSerialThread::printfCx( )
 }
 
 //读取参数
+//水位测量几点法的参数
 void QSerialThread::readPara( )
 {
     QSqlQuery query ;
@@ -763,4 +845,30 @@ void QSerialThread::readPara( )
         fNums[iId] = iNums ;
 //        qDebug() << iId << iNums ;
     }
+
+    //取水位基值
+    strSql = QString( "select content from sysconfig where id = %1" ).arg( POS_WATER_BASE );
+    query.exec( strSql );
+    while ( query.next() ){
+        fWaterBase = query.value(0).toFloat( ) ;
+    }
+
+
+}
+
+//获得水深
+float QSerialThread::getSs(  )
+{
+    float fSs = 0 ;
+
+    if( currentCx.iCzff == KIND_SS_MANU )
+        fSs = currentCx.fSs ;
+    if( currentCx.iCzff == KIND_SS_EXPLORE ){
+        float fWaterSurface ;
+        fWaterSurface = pRam->GetValue( POS_WATER ) + fWaterBase ;
+        fSs = dm.getSs( fWaterSurface, currentCx.fQdj );
+    }
+
+    return fSs ;
+
 }

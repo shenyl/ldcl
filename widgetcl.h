@@ -11,6 +11,7 @@
 #include "./serial/qserialthread.h"
 #include "widgetcxe.h"
 class QGraphicViewDm;
+class QRamDrive ;
 
 class QWidgetCl : public QWidget
 {
@@ -25,6 +26,7 @@ public:
     QPushButton * buttonHead ;
     QPushButton * buttonBack ;
     QPushButton * buttonStop ;
+    QPushButton * buttonStopUp ;
 
     QPushButton * buttonCs ;
     QPushButton * buttonConfigQdj ;
@@ -50,10 +52,14 @@ public:
     QLineEdit * pEdtQdj, * pEdtSs ;
     QLabel * lblMsg ;
 
+    QLabel * labelSw, *labelV;
+    QLabel * labelSwValue, *labelVValue;
+
     QWidgetCxE * pWidCx ;
     QGraphicViewDm * pWidDm ;
 
     QPlainTextEdit * pPlainTextEdit ;
+    QRamDrive  ram ;
 
 private slots:
     void slotCmdUp( );
@@ -61,6 +67,7 @@ private slots:
     void slotCmdHead( );
     void slotCmdBack( );
     void slotCmdStop( );
+    void slotCmdStopUp( );
 
     void slotCmdCl( );
     void slotCmdConfigQdj( );
@@ -91,6 +98,7 @@ private:
 
 protected:
     void closeEvent ( QCloseEvent * event );
+    void	timerEvent ( QTimerEvent * event );
 signals:
 
 public slots:

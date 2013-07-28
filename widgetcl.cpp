@@ -4,6 +4,7 @@
 #include "dlgresultcl.h"
 
 #include "clscx.h"
+#include "sendbuf.h"
 
 #include <QVBoxLayout>
 #include <QPalette>
@@ -17,6 +18,15 @@
 QWidgetCl::QWidgetCl(QWidget *parent) :
     QWidget(parent)
 {
+    //-----------------------
+//    unsigned char buf[10];
+//    buf[0] = 1 ;
+//    buf[1] = 2 ;
+//    buf[2] = 3 ;
+//    QSendBuf  b;
+//    b.addBuf( buf, 3, 2 );
+    //-----------------------
+
     buttonUp = new QPushButton( tr(""), this );  //上升
     setButton( buttonUp, "background:url(:/images/up.png)");
 
@@ -32,12 +42,15 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     buttonStop = new QPushButton( tr("") );  //停止
     setButton( buttonStop, "background:url(:/images/stop.png)");
 
+    buttonStopUp = new QPushButton( tr("") );  //停止上行
+    setButton( buttonStopUp, "background:url(:/images/stopup.png)");
+
     buttonConfigQdj = new QPushButton( tr("设置起点距") );
     buttonConfigSs = new QPushButton( tr("设置水深") );
     buttonGetQdj = new QPushButton( tr("获取铅鱼当前位置") );
     buttonCs =  new QPushButton( tr("测速仪测速") );
 
-    buttonClResult =  new QPushButton( tr("测量结果") );
+    buttonClResult = new QPushButton( tr("测量结果") );
 
     connect( buttonUp, SIGNAL(clicked()), this, SLOT( slotCmdUp( ) ));
     connect( buttonDown, SIGNAL(clicked()), this, SLOT( slotCmdDown( ) ));
@@ -47,6 +60,7 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     connect( buttonConfigQdj, SIGNAL(clicked()), this, SLOT( slotCmdConfigQdj( ) ));
     connect( buttonConfigSs, SIGNAL(clicked()), this, SLOT( slotCmdConfigSs( ) ));
     connect( buttonGetQdj, SIGNAL(clicked()), this, SLOT( slotGetQdj( ) ));
+    connect( buttonStopUp, SIGNAL(clicked()), this, SLOT( slotCmdStopUp( )) );
 
     connect( buttonCs, SIGNAL(clicked()), this, SLOT( slotCmdCl( ) ));
     connect( buttonClResult, SIGNAL(clicked()), this, SLOT( slotClResult( )));
@@ -61,6 +75,9 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
              this, SLOT( slotGetHalfContinue( ) ) );
     connect( &threadserial, SIGNAL( sigAuto( QString ) ), \
              this, SLOT( slotGetAuto( QString ) ) );
+
+    connect( &threadserial.sendBuf, SIGNAL( sigMsg(QString) ), \
+             this, SLOT( slotGetMsg( QString ) ));
 
     radioManual  = new QRadioButton( tr("手动测量") );
     radioManual->setChecked( true );
@@ -94,16 +111,16 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     QGridLayout * LayoutAuto = new QGridLayout ;
     LayoutAuto->addWidget(radioManual, 0, 0 );
     LayoutAuto->addWidget(radioFullAuto, 1, 0 );
-    LayoutAuto->addWidget(radioHalfAuto, 1, 1);
-    LayoutAuto->addWidget(lblAutoState, 3, 0,1,2);
-    LayoutAuto->addWidget(buttonClStart, 4, 0);
-//    LayoutAuto->addWidget(buttonClPause, 4, 1);
-    LayoutAuto->addWidget(buttonClStop, 4, 1);
+    LayoutAuto->addWidget(radioHalfAuto, 1, 1 );
+    LayoutAuto->addWidget(lblAutoState, 3, 0, 1, 2 );
+    LayoutAuto->addWidget(buttonClStart, 4, 0 );
+    LayoutAuto->addWidget(buttonClPause, 4, 1 );
+    LayoutAuto->addWidget(buttonClStop, 4, 2 );
 //    LayoutAuto->addWidget(buttonClUnFinish, 4, 1);
 
     QGroupBox *groupBox = new QGroupBox(tr("自动测量"));
     groupBox->setLayout( LayoutAuto );
-    groupBox->setMaximumWidth( 300  );
+    groupBox->setMaximumWidth( 400  );
 
     label1 = new QLabel( tr("起点距:") );
     label2 = new QLabel( tr("水深:") );
@@ -125,6 +142,12 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
 
     pPlainTextEdit = new QPlainTextEdit ;
     pPlainTextEdit->setMaximumBlockCount( 130 ); //最大行数
+
+    labelSw = new QLabel(tr("水位(m)：") ) ;
+    labelV = new QLabel(tr("电压(V)：") ) ;
+
+    labelSwValue = new QLabel(tr("") ) ;
+    labelVValue = new QLabel(tr("") ) ;
 
     QHBoxLayout * LayoutGetQdj = new QHBoxLayout ;
     LayoutGetQdj->addStretch( );
@@ -151,6 +174,8 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     LayoutCtl->addWidget(buttonBack, 1, 2);
     LayoutCtl->addWidget(buttonDown, 2, 1);
 
+    LayoutCtl->addWidget( buttonStopUp, 1, 3 );
+
     QHBoxLayout * Layout3 = new QHBoxLayout ;
     Layout3->addLayout( LayoutCtl );
     Layout3->addWidget( groupBox );
@@ -162,8 +187,15 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     Layout4->addWidget( buttonClearLog );
     Layout4->addWidget( buttonSaveLog );
 
+    QHBoxLayout * LayoutClValue = new QHBoxLayout ;  //测量结果显示布局
+    LayoutClValue->addWidget( labelSw );
+    LayoutClValue->addWidget( labelSwValue );
+    LayoutClValue->addWidget( labelV );
+    LayoutClValue->addWidget( labelVValue );
+
     QVBoxLayout * LayoutRight = new QVBoxLayout;
 //    LayoutRight->addStretch( );
+    LayoutRight->addLayout( LayoutClValue );
     LayoutRight->addWidget( pWidDm );
     LayoutRight->addLayout( Layout3 );
 //    LayoutRight->addLayout( LayoutGetQdj );
@@ -176,6 +208,8 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     mainLayout->addWidget( pWidCx );
     mainLayout->addLayout( LayoutRight );
 
+    ram.CreateRam( 1 );
+    threadserial.setRamDrive( &ram );
     threadserial.setComNo( getSysconfig( 0 ).toInt() ); //设串口
     threadserial.init();
     threadserial.start( );
@@ -219,6 +253,21 @@ void QWidgetCl::slotCmdStop( )
 {
     slotClStop(  );
     threadserial.sendCmdMove( CMD_STOP );
+}
+
+//急停止上行
+void QWidgetCl::slotCmdStopUp( )
+{
+    threadserial.stopUp( );
+
+    int iMode ;
+    iMode = threadserial.getMode();
+    if( iMode == MODE_AUTO || iMode == MODE_HALF ){
+        buttonClPause->setEnabled( true );
+        buttonClPause->setText( tr("继续") );
+        threadserial.pauseAuto();
+        lblAutoState->setText(tr("自动测量暂停"));
+    }
 }
 
 //开始测量
@@ -401,7 +450,7 @@ void QWidgetCl::slotClStop(  )
     enableButton(true);
 }
 
-void QWidgetCl::slotClPause(  )
+void QWidgetCl::slotClPause( )
 {
     if( buttonClPause->text() == tr("暂停") ){
         buttonClPause->setText( tr("继续") );
@@ -482,15 +531,24 @@ void QWidgetCl::enableButton( bool bEnable )
     buttonBack->setEnabled( bEnable );
 
     if( bEnable ){
-        buttonUp->setText("");
-        buttonDown->setText("");
-        buttonHead->setText("");
-        buttonBack->setText("");
+        setButton( buttonUp, "background:url(:/images/up.png)");
+        setButton( buttonDown, "background:url(:/images/down.png)");
+        setButton( buttonHead, "background:url(:/images/right.png)");
+        setButton( buttonBack, "background:url(:/images/left.png)");
     }
     else{
-        buttonUp->setText("X");
-        buttonDown->setText("X");
-        buttonHead->setText("X");
-        buttonBack->setText("X");
+        setButton( buttonUp, "background:url(:/images/grayup.png)");
+        setButton( buttonDown, "background:url(:/images/graydown.png)");
+        setButton( buttonHead, "background:url(:/images/grayright.png)");
+        setButton( buttonBack, "background:url(:/images/grayleft.png)");
     }
+}
+
+void  QWidgetCl::timerEvent ( QTimerEvent * event )
+{
+    double  fvalue ;
+    fvalue = ram.GetValue( POS_WATER  );
+    labelSwValue->setText( QString("%1").arg( fvalue ) );
+    fvalue = ram.GetValue( POS_VOLTAGE );
+    labelVValue->setText( QString("%1").arg( fvalue ) );
 }

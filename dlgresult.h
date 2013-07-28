@@ -13,7 +13,7 @@
 #include <QLineEdit>
 #include <QSqlQueryModel>
 
-//垂线管理类
+//结果查看类 使用QSqlQueryModel类 暂未使用
 class QDlgResult : public QDialog
 {
     Q_OBJECT

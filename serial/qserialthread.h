@@ -6,6 +6,12 @@
 
 #include "qcommserial.h"
 #include "../clscx.h"
+#include "../sendbuf.h"
+#include "../ramdrive.h"
+#include "../getdm.h"
+
+class QGetDm ;
+class QRamDrive ;
 
 #define  STATE_NOTSTART     -1
 
@@ -21,6 +27,8 @@
 #define  STATE_VER_UP       6       //上升过程
 #define  STATE_VER_UP_OVER  7       //上升过程结束
 
+#define  STATE_STOPUP       8       //急停上行
+
 #define  CMD_HEAD   0   //出车
 #define  CMD_BACK   1   //回车
 #define  CMD_UP     2   //上行
@@ -33,11 +41,21 @@
 #define  MODE_HALF  1   //半自动
 #define  MODE_AUTO  2   //全自动
 
-#define  AUTO_STATE_START  1
-#define  AUTO_STATE_PAUSE  2
-#define  AUTO_STATE_STOP   3
+#define  AUTO_STATE_START       1
+#define  AUTO_STATE_PAUSE       2
+#define  AUTO_STATE_STOP        3
 
+//共享内存的数字编号
+#define  POS_WATER              1
+#define  POS_VOLTAGE            2
+#define  POS_FREQUENCY          3
 
+#define  KIND_NO            0
+#define  KIND_SS_MANU       1       //手工填入
+#define  KIND_SS_EXPLORE    2       //根据水位计采集
+#define  KIND_SS_CL         3       //根据水底信号测量
+
+#define  POS_WATER_BASE    20
 
 class QSerialThread : public QThread
 {
@@ -46,16 +64,19 @@ class QSerialThread : public QThread
 public:
     explicit QSerialThread(QObject *parent = 0);
 
+    QSendBuf  sendBuf ;
+
     void init( );
     void run( );
 
     void setComNo( int iComNo ){ this->iComNo = iComNo; }
-    bool setConfigQdj( QString strValue );
-    bool setConfigSs( QString strValue );
-    void sendCmdMove( int iCmd );
+    bool setConfigQdj( QString strValue , bool bClear = true, bool bGo = true );
+    bool setConfigSs( QString strValue , bool bClear = true , bool bGo = true );
+    void sendCmdMove( int iCmd, bool bClear = true ,bool bGo = true );
     void sendCmdCl( );
     bool queryMove( );
     bool queryCl( );
+    void stopUp( );
 
     void startAutoMode( int iMode );
     void stopAuto( );
@@ -63,6 +84,7 @@ public:
     void continueAuto( );
     void setHalfContinue( ){ bHalfContinue = true ; }
     void setStateNotStart( ){ iState = STATE_NOTSTART ;}
+    void setStopUp( bool bStopUp ){ this->bStopUp = bStopUp ; }
 
     void clearCx( ){ listCx.clear( ); }
     void appendCx( clsCx  cx ){ listCx.append( cx ); }
@@ -71,13 +93,16 @@ public:
     void runManu( );
     void runFullAuto( );
 
-    void runCzff1(  );
-    void runCzff2(  );
+    void runClss(  );
 
     void computerLs( );
     void moveFish(  );
 
     void resetQueryMovingCount( ){ iQueryMovingCount = 0; }
+    int getMode( ){ return iAutoMode; }
+    void  setRamDrive( QRamDrive * pRam  ){ this->pRam = pRam; }
+
+    float getSs(  );
 
 protected:
     void writeComm( char c );
@@ -86,9 +111,12 @@ protected:
 
 private:
     QCommSerial serial ;
-    bool bConnected ;
-    int iComNo ;
-    bool bHalfContinue ;
+    QRamDrive * pRam ;
+
+    bool bConnected ;           //是否联接
+    int iComNo ;                //串口号
+    bool bHalfContinue ;        //半自动运行标志
+    bool bStopUp ;              //急停上提按钮
 
     unsigned char chBufInput[1024];
     unsigned char chBufOutput[1024];
@@ -110,7 +138,11 @@ private:
     clsCx  currentCx ;  //当前垂线
 //    int iCxClState ;    //垂线测量状态
     bool bSecondHeightIng ; //第二档上提正在进行中
-    bool bAux ;
+    bool bAux ;             //半自动测量的辅助节点
+    bool bAfterClss  ;           //是否测量水深
+    float  fWaterBase ;     //水位基值
+
+    QGetDm  dm ;
 
 signals:
     void sigFishPos( float * fPos, int iNums, bool bRes );  // bRes 表示是在测量中还是测量结果

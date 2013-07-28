@@ -39,6 +39,7 @@ float  QGetDm::getSs( float fWaterSurface, float fQdj )
 }
 
 //根据水面高程与方向获取该水面高程左边的起点距与右边的起点距
+//这个起点距是整个断面从左边开始的起点距
 //0 从左边起点距   1 从右边的起点距
 float QGetDm::getQdj(  float fWaterSurface, int iDir )
 {

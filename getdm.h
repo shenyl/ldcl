@@ -5,7 +5,7 @@
 #include <QList>
 
 //根据断面信息获取相应的值
-//
+//Dm 断面值
 class QGetDm : public QObject
 {
     Q_OBJECT

@@ -13,5 +13,10 @@
         <file>images/lljs.png</file>
         <file>images/reporthistory.png</file>
         <file>images/dm.png</file>
+        <file>images/graydown.png</file>
+        <file>images/grayleft.png</file>
+        <file>images/grayright.png</file>
+        <file>images/grayup.png</file>
+        <file>images/stopup.png</file>
     </qresource>
 </RCC>

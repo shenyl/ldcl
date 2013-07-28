@@ -15,6 +15,7 @@ SOURCES += \
         widgetcl.cpp \
         widgetcxe.cpp\
         combodelegate.cpp \
+        floatdelegate.cpp \
         ./serial/qcommserial.cpp \
         ./serial/qextserialbase.cpp \
         ./serial/win_qextserialport.cpp \
@@ -33,11 +34,8 @@ SOURCES += \
         browsehistory.cpp  \
         sqlquerymodelresult.cpp \
         widgetv.cpp \
-
-
-#        QWidgetManage.cpp \
-#        sysconfig.cpp \
-#
+        sendbuf.cpp \
+	ramdrive.cpp
 
 HEADERS += \
         ldcl.h \
@@ -45,6 +43,7 @@ HEADERS += \
         widgetcl.h \
         widgetcxe.h\
         combodelegate.h \
+        floatdelegate.h \
         ./serial/qcommserial.h \
         ./serial/qextserialbase.h \
         ./serial/win_qextserialport.h \
@@ -62,12 +61,9 @@ HEADERS += \
         qdlglogin.h \
         browsehistory.h  \
         sqlquerymodelresult.h \
-        widgetv.h
-
-#         QWidgetManage.h \
-#         sysconfig.h \
-#         QWidgetInOut.h \
-#
+        widgetv.h \
+        sendbuf.h \
+	ramdrive.h 
 
 RESOURCES  =  ldcl.qrc
 
