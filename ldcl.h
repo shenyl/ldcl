@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QSqlDatabase>
 #include <QSystemTrayIcon>
+#include <QProcess>
 
 class QMenu ;
 class QAction ;
@@ -59,6 +60,7 @@ private:
 
     QSqlDatabase m_mainDB ;
     int iUserPower ;
+    QProcess * pProcessCl ;
 };
 
 #endif  // QLDCL_H

@@ -7,7 +7,6 @@
 #include "qcommserial.h"
 #include "../clscx.h"
 #include "../sendbuf.h"
-#include "../ramdrive.h"
 #include "../getdm.h"
 
 class QGetDm ;
@@ -55,7 +54,7 @@ class QRamDrive ;
 #define  KIND_SS_EXPLORE    2       //根据水位计采集
 #define  KIND_SS_CL         3       //根据水底信号测量
 
-#define  POS_WATER_BASE    20
+#define  POS_WATER_BASE    9
 
 class QSerialThread : public QThread
 {
@@ -84,7 +83,7 @@ public:
     void continueAuto( );
     void setHalfContinue( ){ bHalfContinue = true ; }
     void setStateNotStart( ){ iState = STATE_NOTSTART ;}
-    void setStopUp( bool bStopUp ){ this->bStopUp = bStopUp ; }
+    void setStopUp( bool bStopUp ){ this->bStopUp = bStopUp ;}
 
     void clearCx( ){ listCx.clear( ); }
     void appendCx( clsCx  cx ){ listCx.append( cx ); }
@@ -92,8 +91,6 @@ public:
 
     void runManu( );
     void runFullAuto( );
-
-    void runClss(  );
 
     void computerLs( );
     void moveFish(  );

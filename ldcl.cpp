@@ -43,11 +43,17 @@ QLdcl::QLdcl( int iUserPower, QWidget* parent, Qt::WindowFlags flags )
     setWindowTitle(tr("水文缆道测控系统"));
 
     showMaximized( );
+
+    QString strPath = QCoreApplication::applicationDirPath(  );
+    pProcessCl = new QProcess ;
+    pProcessCl->start( strPath + "/cl.exe" );
 }
 
 QLdcl::~QLdcl()
 {
-
+    QRamDrive ram ;
+    ram.CreateRam( 1 );
+    ram.addMsgDown( "EXIT" );
 }
 
 void QLdcl::createMenusAndActions()

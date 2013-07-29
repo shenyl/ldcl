@@ -214,6 +214,8 @@ QWidgetCl::QWidgetCl(QWidget *parent) :
     threadserial.init();
     threadserial.start( );
 
+    startTimer(1000);
+
 //    char a[] = "aK0.2500 C0.0011 T001.5 N0000 V0.000";
 //    char b[5];
 //    float f1, f2;

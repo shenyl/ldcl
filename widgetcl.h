@@ -10,8 +10,9 @@
 
 #include "./serial/qserialthread.h"
 #include "widgetcxe.h"
+#include "ramdrive.h"
+
 class QGraphicViewDm;
-class QRamDrive ;
 
 class QWidgetCl : public QWidget
 {
@@ -98,7 +99,7 @@ private:
 
 protected:
     void closeEvent ( QCloseEvent * event );
-    void	timerEvent ( QTimerEvent * event );
+    void timerEvent ( QTimerEvent * event );
 signals:
 
 public slots:

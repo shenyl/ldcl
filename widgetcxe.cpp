@@ -1,5 +1,6 @@
 #include   "widgetcxe.h"
 #include   "combodelegate.h"
+#include   "floatdelegate.h"
 
 #include <QHBoxLayout>
 #include <QSqlQuery>
@@ -59,6 +60,11 @@ QWidgetCxE::QWidgetCxE( QString strTabName, QWidget* parent, Qt::WindowFlags fla
 
         if( iEditKind == 1 ){
             ComboDelegate * pDelegate = new ComboDelegate( iEditKind, strEdit2 );
+            tabView->setItemDelegateForColumn( i, pDelegate );
+        }
+
+        if( iEditKind == 2 ){
+            FloatDelegate * pDelegate = new FloatDelegate( iEditKind, strEdit2 );
             tabView->setItemDelegateForColumn( i, pDelegate );
         }
 
